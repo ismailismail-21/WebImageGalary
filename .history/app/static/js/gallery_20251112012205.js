@@ -334,7 +334,7 @@ function openLightbox(imgElement) {
 
     // Show/hide fullscreen button based on content type and device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                     ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
     if (fullscreenBtn) {
         if (isMobile && !isVideo) {
@@ -374,7 +374,7 @@ function toggleFullscreen() {
 
     // Check if we're on a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                     ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
     // On mobile, fullscreen API has limited support
     if (isMobile) {
@@ -675,7 +675,7 @@ function loadImageToLightbox(gridItem) {
 
     // Show/hide fullscreen button based on content type and device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                     ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
     if (fullscreenBtn) {
         if (isMobile && !isVideo) {

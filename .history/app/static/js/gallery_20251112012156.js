@@ -334,7 +334,7 @@ function openLightbox(imgElement) {
 
     // Show/hide fullscreen button based on content type and device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                     ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
     if (fullscreenBtn) {
         if (isMobile && !isVideo) {
@@ -374,7 +374,7 @@ function toggleFullscreen() {
 
     // Check if we're on a mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                     ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
     // On mobile, fullscreen API has limited support
     if (isMobile) {
@@ -651,7 +651,6 @@ function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
-    const fullscreenBtn = document.getElementById('lightboxFullscreenBtn');
     const isVideo = gridItem.dataset.isVideo === 'true';
 
     // Pause any playing video
@@ -671,20 +670,6 @@ function loadImageToLightbox(gridItem) {
         lightboxImage.src = img.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
-    }
-
-    // Show/hide fullscreen button based on content type and device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    if (fullscreenBtn) {
-        if (isMobile && !isVideo) {
-            // Hide fullscreen button on mobile for images (not supported)
-            fullscreenBtn.style.display = 'none';
-        } else {
-            // Show fullscreen button for videos on mobile or all content on desktop
-            fullscreenBtn.style.display = 'flex';
-        }
     }
 
     updateLightboxCounter();

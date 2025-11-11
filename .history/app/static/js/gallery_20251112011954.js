@@ -308,7 +308,6 @@ function openLightbox(imgElement) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
-    const fullscreenBtn = document.getElementById('lightboxFullscreenBtn');
 
     // Get filename from the grid item
     const gridItem = imgElement.closest('.grid-item');
@@ -330,20 +329,6 @@ function openLightbox(imgElement) {
         lightboxImage.src = imgElement.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
-    }
-
-    // Show/hide fullscreen button based on content type and device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    if (fullscreenBtn) {
-        if (isMobile && !isVideo) {
-            // Hide fullscreen button on mobile for images (not supported)
-            fullscreenBtn.style.display = 'none';
-        } else {
-            // Show fullscreen button for videos on mobile or all content on desktop
-            fullscreenBtn.style.display = 'flex';
-        }
     }
 
     lightbox.classList.add('active');
@@ -370,39 +355,8 @@ function toggleFullscreen() {
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
     const activeElement = lightboxImage.style.display !== 'none' ? lightboxImage : lightboxVideo;
-    const isVideo = lightboxVideo.style.display !== 'none';
 
-    // Check if we're on a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    // On mobile, fullscreen API has limited support
-    if (isMobile) {
-        if (isVideo) {
-            // For videos on mobile, try to use the video's native fullscreen controls
-            // Most mobile browsers only allow fullscreen through user gesture on video elements
-            try {
-                if (activeElement.requestFullscreen) {
-                    activeElement.requestFullscreen().catch(() => {
-                        showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
-                    });
-                } else if (activeElement.webkitRequestFullscreen) {
-                    activeElement.webkitRequestFullscreen();
-                } else {
-                    // Fallback: show message that fullscreen isn't available
-                    showNotification('Fullscreen not supported on this mobile browser', 'info');
-                }
-            } catch (e) {
-                showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
-            }
-        } else {
-            // For images on mobile, fullscreen is not supported in most browsers
-            showNotification('Image fullscreen is not supported on mobile browsers. Use device rotation for better viewing.', 'info');
-        }
-        return;
-    }
-
-    // Desktop fullscreen logic
+    // Use browser's native fullscreen API like test.html
     if (!document.fullscreenElement && !document.webkitFullscreenElement &&
         !document.mozFullScreenElement && !document.msFullscreenElement) {
         // Enter fullscreen
@@ -495,74 +449,17 @@ function setupNativeFullscreenTouchNavigation() {
     let startY = 0;
     let isTouching = false;
 
-    // Touch zoom/pinch variables
-    let initialDistance = 0;
-    let initialScale = 1;
-    let isZooming = false;
-
     const handleTouchStart = (e) => {
         if (e.touches && e.touches.length > 0) {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
             isTouching = true;
-
-            // Handle pinch-to-zoom start
-            if (e.touches.length === 2) {
-                e.preventDefault();
-                const touch1 = e.touches[0];
-                const touch2 = e.touches[1];
-                initialDistance = Math.sqrt(
-                    Math.pow(touch2.clientX - touch1.clientX, 2) +
-                    Math.pow(touch2.clientY - touch1.clientY, 2)
-                );
-
-                const lightboxImage = document.getElementById('lightboxImage');
-                const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-                const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-                initialScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-                isZooming = true;
-            }
-        }
-    };
-
-    const handleTouchMove = (e) => {
-        // Handle pinch-to-zoom
-        if (isZooming && e.touches.length === 2) {
-            e.preventDefault();
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const currentDistance = Math.sqrt(
-                Math.pow(touch2.clientX - touch1.clientX, 2) +
-                Math.pow(touch2.clientY - touch1.clientY, 2)
-            );
-
-            const scale = initialScale * (currentDistance / initialDistance);
-            const clampedScale = Math.max(1, Math.min(6, scale)); // Clamp between 1x and 6x
-
-            const lightboxImage = document.getElementById('lightboxImage');
-            const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-            const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-            const currentX = translateMatch ? parseFloat(translateMatch[1]) : 0;
-            const currentY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-
-            lightboxImage.style.transform = `scale(${clampedScale}) translate(${currentX}px, ${currentY}px)`;
-            if (clampedScale > 1) {
-                lightboxImage.style.cursor = 'grab';
-            } else {
-                lightboxImage.style.cursor = '';
-            }
         }
     };
 
     const handleTouchEnd = (e) => {
         if (!isTouching) return;
         isTouching = false;
-
-        // Reset zoom state
-        if (isZooming) {
-            isZooming = false;
-            return;
-        }
 
         const endX = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientX : startX;
         const endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : startY;
@@ -592,8 +489,7 @@ function setupNativeFullscreenTouchNavigation() {
 
         if (fsElement) {
             // Entered fullscreen: attach handlers to the fullscreen element
-            fsElement.addEventListener('touchstart', handleTouchStart, { passive: false });
-            fsElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+            fsElement.addEventListener('touchstart', handleTouchStart, { passive: true });
             fsElement.addEventListener('touchend', handleTouchEnd, { passive: true });
         }
     };
@@ -609,8 +505,7 @@ function setupNativeFullscreenTouchNavigation() {
     if (lightboxVideo) {
         lightboxVideo.addEventListener('webkitbeginfullscreen', () => {
             // iOS entered native fullscreen - attach handlers to video
-            lightboxVideo.addEventListener('touchstart', handleTouchStart, { passive: false });
-            lightboxVideo.addEventListener('touchmove', handleTouchMove, { passive: false });
+            lightboxVideo.addEventListener('touchstart', handleTouchStart, { passive: true });
             lightboxVideo.addEventListener('touchend', handleTouchEnd, { passive: true });
         });
 
@@ -622,8 +517,7 @@ function setupNativeFullscreenTouchNavigation() {
     // Also monitor all videos in the grid for iOS fullscreen
     document.querySelectorAll('.gallery-video').forEach(video => {
         video.addEventListener('webkitbeginfullscreen', () => {
-            video.addEventListener('touchstart', handleTouchStart, { passive: false });
-            video.addEventListener('touchmove', handleTouchMove, { passive: false });
+            video.addEventListener('touchstart', handleTouchStart, { passive: true });
             video.addEventListener('touchend', handleTouchEnd, { passive: true });
         });
     });
@@ -651,7 +545,6 @@ function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
-    const fullscreenBtn = document.getElementById('lightboxFullscreenBtn');
     const isVideo = gridItem.dataset.isVideo === 'true';
 
     // Pause any playing video
@@ -671,20 +564,6 @@ function loadImageToLightbox(gridItem) {
         lightboxImage.src = img.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
-    }
-
-    // Show/hide fullscreen button based on content type and device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    if (fullscreenBtn) {
-        if (isMobile && !isVideo) {
-            // Hide fullscreen button on mobile for images (not supported)
-            fullscreenBtn.style.display = 'none';
-        } else {
-            // Show fullscreen button for videos on mobile or all content on desktop
-            fullscreenBtn.style.display = 'flex';
-        }
     }
 
     updateLightboxCounter();

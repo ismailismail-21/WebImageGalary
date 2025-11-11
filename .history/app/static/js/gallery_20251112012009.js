@@ -308,7 +308,6 @@ function openLightbox(imgElement) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
-    const fullscreenBtn = document.getElementById('lightboxFullscreenBtn');
 
     // Get filename from the grid item
     const gridItem = imgElement.closest('.grid-item');
@@ -330,20 +329,6 @@ function openLightbox(imgElement) {
         lightboxImage.src = imgElement.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
-    }
-
-    // Show/hide fullscreen button based on content type and device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    if (fullscreenBtn) {
-        if (isMobile && !isVideo) {
-            // Hide fullscreen button on mobile for images (not supported)
-            fullscreenBtn.style.display = 'none';
-        } else {
-            // Show fullscreen button for videos on mobile or all content on desktop
-            fullscreenBtn.style.display = 'flex';
-        }
     }
 
     lightbox.classList.add('active');
@@ -370,39 +355,8 @@ function toggleFullscreen() {
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
     const activeElement = lightboxImage.style.display !== 'none' ? lightboxImage : lightboxVideo;
-    const isVideo = lightboxVideo.style.display !== 'none';
 
-    // Check if we're on a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    // On mobile, fullscreen API has limited support
-    if (isMobile) {
-        if (isVideo) {
-            // For videos on mobile, try to use the video's native fullscreen controls
-            // Most mobile browsers only allow fullscreen through user gesture on video elements
-            try {
-                if (activeElement.requestFullscreen) {
-                    activeElement.requestFullscreen().catch(() => {
-                        showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
-                    });
-                } else if (activeElement.webkitRequestFullscreen) {
-                    activeElement.webkitRequestFullscreen();
-                } else {
-                    // Fallback: show message that fullscreen isn't available
-                    showNotification('Fullscreen not supported on this mobile browser', 'info');
-                }
-            } catch (e) {
-                showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
-            }
-        } else {
-            // For images on mobile, fullscreen is not supported in most browsers
-            showNotification('Image fullscreen is not supported on mobile browsers. Use device rotation for better viewing.', 'info');
-        }
-        return;
-    }
-
-    // Desktop fullscreen logic
+    // Use browser's native fullscreen API like test.html
     if (!document.fullscreenElement && !document.webkitFullscreenElement &&
         !document.mozFullScreenElement && !document.msFullscreenElement) {
         // Enter fullscreen
@@ -651,7 +605,6 @@ function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
-    const fullscreenBtn = document.getElementById('lightboxFullscreenBtn');
     const isVideo = gridItem.dataset.isVideo === 'true';
 
     // Pause any playing video
@@ -671,20 +624,6 @@ function loadImageToLightbox(gridItem) {
         lightboxImage.src = img.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
-    }
-
-    // Show/hide fullscreen button based on content type and device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-
-    if (fullscreenBtn) {
-        if (isMobile && !isVideo) {
-            // Hide fullscreen button on mobile for images (not supported)
-            fullscreenBtn.style.display = 'none';
-        } else {
-            // Show fullscreen button for videos on mobile or all content on desktop
-            fullscreenBtn.style.display = 'flex';
-        }
     }
 
     updateLightboxCounter();
