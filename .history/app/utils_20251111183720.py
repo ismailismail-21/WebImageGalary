@@ -201,8 +201,7 @@ def get_folder_images(dataset_path, folder_name, page=1, per_page=100, use_layou
                             'width': width,
                             'height': height,
                             'aspect_ratio': width / height,
-                            'file_size': file_size,
-                            'is_video': is_video(filename)
+                            'file_size': file_size
                         })
     except Exception as e:
         print(f"Error reading folder {folder_path}: {e}")

@@ -5,13 +5,13 @@ let currentFolderName = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     currentFolderName = document.querySelector('.breadcrumb-item strong')?.textContent || '';
-
+    
     // Load all images
     loadAllImages();
-
+    
     // Setup event listeners
     setupEventListeners();
-
+    
     // Close tag modal when clicking outside
     const tagModal = document.getElementById('tagModal');
     if (tagModal) {
@@ -21,13 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
+    
     // Close button in tag modal
     const closeModalBtn = document.querySelector('.modal-close');
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeTagModal);
     }
-
+    
     // Close lightbox when clicking outside
     const lightbox = document.getElementById('lightbox');
     if (lightbox) {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
+    
     // Setup favorite button in lightbox
     const lightboxFavBtn = document.querySelector('.lightbox-favorite');
     if (lightboxFavBtn) {
@@ -73,22 +73,6 @@ function setupEventListeners() {
                 prevImage();
             } else if (e.key === 'ArrowRight') {
                 nextImage();
-            } else if (e.key === '+' || e.key === '=') {
-                // Zoom in with + or = key
-                e.preventDefault();
-                zoomImage('in');
-            } else if (e.key === '-' || e.key === '_') {
-                // Zoom out with - key
-                e.preventDefault();
-                zoomImage('out');
-            } else if (e.key === '0') {
-                // Reset zoom with 0 key
-                e.preventDefault();
-                const lightboxImage = document.getElementById('lightboxImage');
-                if (lightboxImage) {
-                    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-                    lightboxImage.style.cursor = '';
-                }
             }
         }
 
@@ -107,11 +91,11 @@ function setupEventListeners() {
             e.preventDefault();
             const lightboxImage = document.getElementById('lightboxImage');
             const rect = lightboxImage.getBoundingClientRect();
-
+            
             // Calculate mouse position relative to image
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-
+            
             zoomImageAtPoint(e.deltaY < 0 ? 'in' : 'out', mouseX, mouseY, rect.width, rect.height);
         } else {
             // Wheel to navigate (but add threshold to avoid accidental navigation)
@@ -135,30 +119,17 @@ function setupEventListeners() {
 function openLightbox(imgElement) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxVideo = document.getElementById('lightboxVideo');
 
     // Get filename from the grid item
     const gridItem = imgElement.closest('.grid-item');
     const filename = gridItem.dataset.filename;
-    const isVideo = gridItem.dataset.isVideo === 'true';
     const index = Array.from(document.querySelectorAll('.grid-item')).indexOf(gridItem);
 
     currentImageIndex = index;
 
-    // Show either video or image
-    if (isVideo) {
-        lightboxImage.style.display = 'none';
-        lightboxVideo.style.display = 'block';
-        lightboxVideo.querySelector('source').src = imgElement.querySelector('source').src;
-        lightboxVideo.load();
-    } else {
-        lightboxVideo.style.display = 'none';
-        lightboxImage.style.display = 'block';
-        lightboxImage.src = imgElement.src;
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    }
-    
+    lightboxImage.src = imgElement.src;
+    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+    lightboxImage.style.cursor = '';
     lightbox.classList.add('active');
 
     updateLightboxFavorite();
@@ -168,13 +139,6 @@ function openLightbox(imgElement) {
 
 function closeLightbox() {
     const lightbox = document.getElementById('lightbox');
-    const lightboxVideo = document.getElementById('lightboxVideo');
-    
-    // Pause video if playing
-    if (lightboxVideo) {
-        lightboxVideo.pause();
-    }
-    
     lightbox.classList.remove('active');
     document.body.style.overflow = 'auto';
 }
@@ -194,27 +158,10 @@ function prevImage() {
 function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxVideo = document.getElementById('lightboxVideo');
-    const isVideo = gridItem.dataset.isVideo === 'true';
 
-    // Pause any playing video
-    if (lightboxVideo) {
-        lightboxVideo.pause();
-    }
-
-    // Show either video or image
-    if (isVideo) {
-        lightboxImage.style.display = 'none';
-        lightboxVideo.style.display = 'block';
-        lightboxVideo.querySelector('source').src = img.querySelector('source').src;
-        lightboxVideo.load();
-    } else {
-        lightboxVideo.style.display = 'none';
-        lightboxImage.style.display = 'block';
-        lightboxImage.src = img.src;
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    }
+    lightboxImage.src = img.src;
+    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+    lightboxImage.style.cursor = '';
 
     updateLightboxCounter();
     updateLightboxFavorite();
@@ -246,7 +193,7 @@ function zoomImage(direction) {
     const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
     const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
     const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
+    
     const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
     const currentX = translateMatch ? parseFloat(translateMatch[1]) : 0;
     const currentY = translateMatch ? parseFloat(translateMatch[2]) : 0;
@@ -266,48 +213,6 @@ function zoomImage(direction) {
     }
 }
 
-function zoomImageAtPoint(direction, mouseX, mouseY, imgWidth, imgHeight) {
-    const lightboxImage = document.getElementById('lightboxImage');
-    const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-    const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-    const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-    const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-    const currentX = translateMatch ? parseFloat(translateMatch[1]) : 0;
-    const currentY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-
-    // Calculate new scale
-    let newScale = currentScale;
-    if (direction === 'in') {
-        newScale = Math.min(currentScale + 0.2, 3);
-    } else {
-        newScale = Math.max(currentScale - 0.2, 1);
-    }
-
-    // Reset translation when zooming back to 1x
-    if (newScale === 1) {
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    } else {
-        // Calculate the point in the image that was under the mouse
-        // This keeps that point under the mouse after zooming
-        const scaleChange = newScale / currentScale;
-
-        // Calculate mouse position relative to center
-        const centerX = imgWidth / 2;
-        const centerY = imgHeight / 2;
-        const offsetX = mouseX - centerX;
-        const offsetY = mouseY - centerY;
-
-        // Adjust translation to keep the point under the mouse cursor
-        const newX = currentX - (offsetX * (scaleChange - 1));
-        const newY = currentY - (offsetY * (scaleChange - 1));
-
-        lightboxImage.style.transform = `scale(${newScale}) translate(${newX}px, ${newY}px)`;
-        lightboxImage.style.cursor = 'grab';
-    }
-}
-
 // Pan/drag functionality for zoomed images with middle mouse button
 let isPanning = false;
 let startX = 0;
@@ -318,7 +223,7 @@ let currentTranslateY = 0;
 function setupImagePanning() {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightboxImage');
-
+    
     if (!lightbox || !lightboxImage) return;
 
     // Start panning on middle mouse button down
@@ -326,21 +231,21 @@ function setupImagePanning() {
         // Middle mouse button (button === 1)
         if (e.button === 1) {
             e.preventDefault();
-
+            
             const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
             const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
             const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-
+            
             // Only allow panning when zoomed in
             if (currentScale > 1) {
                 isPanning = true;
                 startX = e.clientX;
                 startY = e.clientY;
-
+                
                 const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
                 currentTranslateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
                 currentTranslateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-
+                
                 lightboxImage.style.cursor = 'grabbing';
             }
         }
@@ -349,19 +254,19 @@ function setupImagePanning() {
     // Pan/move the image
     lightboxImage.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
-
+        
         e.preventDefault();
-
+        
         const deltaX = e.clientX - startX;
         const deltaY = e.clientY - startY;
-
+        
         const newX = currentTranslateX + deltaX;
         const newY = currentTranslateY + deltaY;
-
+        
         const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
         const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
         const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-
+        
         lightboxImage.style.transform = `scale(${currentScale}) translate(${newX}px, ${newY}px)`;
     });
 
@@ -375,7 +280,7 @@ function setupImagePanning() {
             }
         }
     };
-
+    
     lightboxImage.addEventListener('mouseup', stopPanning);
     lightboxImage.addEventListener('mouseleave', stopPanning);
     document.addEventListener('mouseup', stopPanning);
@@ -392,7 +297,7 @@ function setupImagePanning() {
         const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
         const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
         const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-
+        
         if (currentScale > 1 && !isPanning) {
             lightboxImage.style.cursor = 'grab';
         }
@@ -416,26 +321,26 @@ function deleteImage(folderName, filename, button) {
     fetch(`/api/image/${folderName}/${filename}`, {
         method: 'DELETE'
     })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                // Remove from DOM
-                const gridItem = button.closest('.grid-item');
-                gridItem.remove();
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Remove from DOM
+            const gridItem = button.closest('.grid-item');
+            gridItem.remove();
 
-                // Update image list
-                loadAllImages();
+            // Update image list
+            loadAllImages();
 
-                // Show notification
-                showNotification('Image deleted successfully', 'success');
-            } else {
-                showNotification(data.message || 'Error deleting image', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error deleting image:', err);
-            showNotification('Error deleting image', 'error');
-        });
+            // Show notification
+            showNotification('Image deleted successfully', 'success');
+        } else {
+            showNotification(data.message || 'Error deleting image', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error deleting image:', err);
+        showNotification('Error deleting image', 'error');
+    });
 }
 
 function toggleImageFavorite(folderName, filename, button) {
@@ -443,39 +348,39 @@ function toggleImageFavorite(folderName, filename, button) {
     const isCurrentlyFavorited = button && button.classList.contains('active');
 
     const method = isCurrentlyFavorited ? 'DELETE' : 'POST';
-
+    
     fetch(`/api/favorite/${folderName}/${filename}`, {
         method: method
     })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                // Update button state
-                if (button) {
-                    if (isCurrentlyFavorited) {
-                        button.classList.remove('active');
-                        button.textContent = '♡';
-                    } else {
-                        button.classList.add('active');
-                        button.textContent = '♥';
-                    }
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update button state
+            if (button) {
+                if (isCurrentlyFavorited) {
+                    button.classList.remove('active');
+                    button.textContent = '♡';
+                } else {
+                    button.classList.add('active');
+                    button.textContent = '♥';
                 }
-
-                // Update lightbox button if open
-                updateLightboxFavoriteButton();
-
-                showNotification(
-                    isCurrentlyFavorited ? 'Removed from favorites' : '❤️ Added to favorites',
-                    'success'
-                );
-            } else {
-                showNotification(data.message || 'Error updating favorite', 'error');
             }
-        })
-        .catch(err => {
-            console.error('Error toggling favorite:', err);
-            showNotification('Error updating favorite', 'error');
-        });
+            
+            // Update lightbox button if open
+            updateLightboxFavoriteButton();
+            
+            showNotification(
+                isCurrentlyFavorited ? 'Removed from favorites' : '❤️ Added to favorites',
+                'success'
+            );
+        } else {
+            showNotification(data.message || 'Error updating favorite', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error toggling favorite:', err);
+        showNotification('Error updating favorite', 'error');
+    });
 }
 
 function updateLightboxFavoriteButton() {
@@ -486,7 +391,7 @@ function updateLightboxFavoriteButton() {
     const folderName = currentImage.dataset.folder;
     const filename = currentImage.dataset.filename;
     const favoriteBtn = document.querySelector('.lightbox-favorite');
-
+    
     if (!favoriteBtn) return;
 
     // Query the API to check if this image is favorited
@@ -509,7 +414,7 @@ function toggleLightboxFavorite() {
 
     const folderName = currentImage.dataset.folder;
     const filename = currentImage.dataset.filename;
-
+    
     toggleImageFavorite(folderName, filename);
 }
 
@@ -571,14 +476,14 @@ document.head.appendChild(style);
 function openTagModal(folderName, filename) {
     const modal = document.getElementById('tagModal');
     if (!modal) return;
-
+    
     // Store current image info for tag operations
     modal.dataset.folder = folderName;
     modal.dataset.filename = filename;
-
+    
     // Show modal
     modal.classList.add('active');
-
+    
     // Load available tags and current image tags
     updateTagsList();
     loadImageTags(folderName, filename);
@@ -594,7 +499,7 @@ function closeTagModal() {
 function updateTagsList() {
     const existingTags = document.getElementById('existingTags');
     if (!existingTags) return;
-
+    
     fetch('/api/tags')
         .then(r => r.json())
         .then(tags => {
@@ -609,7 +514,7 @@ function updateTagsList() {
                         </label>
                     `)
                     .join('');
-
+                
                 // Re-add event listeners
                 document.querySelectorAll('.tag-check').forEach(checkbox => {
                     checkbox.addEventListener('change', (e) => {
@@ -617,7 +522,7 @@ function updateTagsList() {
                         const folderName = modal.dataset.folder;
                         const filename = modal.dataset.filename;
                         const tagId = e.target.dataset.tagId;
-
+                        
                         toggleImageTag(folderName, filename, tagId, e.target.checked);
                     });
                 });
@@ -643,33 +548,33 @@ function loadImageTags(folderName, filename) {
 
 function toggleImageTag(folderName, filename, tagId, isAdding) {
     const method = isAdding ? 'POST' : 'DELETE';
-
+    
     fetch(`/api/image-tag/${folderName}/${filename}/${tagId}`, {
         method: method
     })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(isAdding ? 'Tag added' : 'Tag removed', 'success');
-            } else {
-                showNotification(data.message || 'Error updating tag', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error toggling tag:', err);
-            showNotification('Error updating tag', 'error');
-        });
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(isAdding ? 'Tag added' : 'Tag removed', 'success');
+        } else {
+            showNotification(data.message || 'Error updating tag', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error toggling tag:', err);
+        showNotification('Error updating tag', 'error');
+    });
 }
 
 function createNewTag() {
     const tagName = document.getElementById('newTagName').value.trim();
     const tagColor = document.getElementById('newTagColor').value;
-
+    
     if (!tagName) {
         showNotification('Please enter a tag name', 'error');
         return;
     }
-
+    
     fetch('/api/tags', {
         method: 'POST',
         headers: {
@@ -680,19 +585,19 @@ function createNewTag() {
             color: tagColor
         })
     })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('newTagName').value = '';
-                document.getElementById('newTagColor').value = '#3498db';
-                updateTagsList();
-                showNotification('Tag created successfully', 'success');
-            } else {
-                showNotification(data.message || 'Error creating tag', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error creating tag:', err);
-            showNotification('Error creating tag', 'error');
-        });
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('newTagName').value = '';
+            document.getElementById('newTagColor').value = '#3498db';
+            updateTagsList();
+            showNotification('Tag created successfully', 'success');
+        } else {
+            showNotification(data.message || 'Error creating tag', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error creating tag:', err);
+        showNotification('Error creating tag', 'error');
+    });
 }

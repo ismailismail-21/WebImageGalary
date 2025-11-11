@@ -5,18 +5,10 @@ from .models import ImageMetadata
 from . import db
 import math
 
-SUPPORTED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.heic', '.mp4', '.mov', '.avi', '.webm'}
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.avi', '.webm'}
+SUPPORTED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.heic'}
 
 def get_image_dimensions(image_path):
-    """Get image width and height for images, or default dimensions for videos"""
-    file_ext = Path(image_path).suffix.lower()
-    
-    # For videos, return default dimensions (will be handled by video player)
-    if file_ext in VIDEO_EXTENSIONS:
-        return 1920, 1080  # Default 16:9 aspect ratio
-    
-    # For images, use PIL
+    """Get image width and height"""
     try:
         with Image.open(image_path) as img:
             return img.width, img.height
@@ -25,12 +17,8 @@ def get_image_dimensions(image_path):
         return None, None
 
 def is_supported_image(filename):
-    """Check if file is a supported image or video format"""
+    """Check if file is a supported image format"""
     return Path(filename).suffix.lower() in SUPPORTED_EXTENSIONS
-
-def is_video(filename):
-    """Check if file is a video format"""
-    return Path(filename).suffix.lower() in VIDEO_EXTENSIONS
 
 def get_all_folders(dataset_path, parent_path=''):
     """Get all category folders from dataset (recursive for hierarchical structure)"""
@@ -201,8 +189,7 @@ def get_folder_images(dataset_path, folder_name, page=1, per_page=100, use_layou
                             'width': width,
                             'height': height,
                             'aspect_ratio': width / height,
-                            'file_size': file_size,
-                            'is_video': is_video(filename)
+                            'file_size': file_size
                         })
     except Exception as e:
         print(f"Error reading folder {folder_path}: {e}")

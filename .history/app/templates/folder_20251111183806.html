@@ -164,11 +164,7 @@
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox">
     <div class="lightbox-container">
-        <img id="lightboxImage" src="" alt="" class="lightbox-image" style="display: block;">
-        <video id="lightboxVideo" class="lightbox-image" controls style="display: none;">
-            <source src="" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+        <img id="lightboxImage" src="" alt="" class="lightbox-image">
 
         <div class="lightbox-info">
             <span id="lightboxCounter">1 / 1</span>
@@ -534,18 +530,10 @@
         gridItem.className = 'grid-item';
         gridItem.dataset.filename = image.filename;
         gridItem.dataset.folder = folderName;
-        gridItem.dataset.isVideo = image.is_video ? 'true' : 'false';
         gridItem.style.width = `${image.calc_width || 200}px`;
         gridItem.style.height = `${image.calc_height || 200}px`;
         
-        const mediaHtml = image.is_video ? `
-            <video class="gallery-image gallery-video" data-width="${image.width}" data-height="${image.height}"
-                preload="metadata" onclick="openLightbox(this)">
-                <source src="/api/image/${folderName}/${image.filename}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="video-play-icon">▶</div>
-        ` : `
+        gridItem.innerHTML = `
             <img src="/api/image/${folderName}/${image.filename}" 
                  alt="${image.filename}"
                  class="gallery-image" 
@@ -553,10 +541,6 @@
                  data-height="${image.height}"
                  loading="lazy"
                  onclick="openLightbox(this)">
-        `;
-        
-        gridItem.innerHTML = `
-            ${mediaHtml}
             
             <div class="image-controls">
                 <button class="heart-btn"

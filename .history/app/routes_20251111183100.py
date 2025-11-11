@@ -56,19 +56,16 @@ def folder(folder_name):
     # Get all top-level folders for navigation (first-level only)
     all_folders = get_all_folders(DATASET_PATH, parent_path='')
     
-    # Get only first batch of subfolders (for lazy loading)
-    all_subfolders = get_subfolders(DATASET_PATH, folder_name)
-    initial_subfolder_count = 20
-    subfolders = all_subfolders[:initial_subfolder_count]
-    total_subfolders = len(all_subfolders)
-    has_more_subfolders = total_subfolders > initial_subfolder_count
+    # Get subfolders of current folder
+    subfolders = get_subfolders(DATASET_PATH, folder_name)
     
     # Get breadcrumb navigation
     breadcrumbs = get_breadcrumb_path(folder_name)
     
-    # Load only first batch of images (for lazy loading)
-    per_page = 50
-    images, total = get_folder_images(DATASET_PATH, folder_name, 1, per_page)
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
+    
+    images, total = get_folder_images(DATASET_PATH, folder_name, page, per_page)
     
     # Get all tags as dictionaries for JSON serialization
     try:
@@ -77,15 +74,18 @@ def folder(folder_name):
     except:
         tags = []
     
+    # Calculate total pages
+    total_pages = (total + per_page - 1) // per_page
+    
     return render_template(
         'folder.html',
         folder_name=folder_name,
         images=images,
+        current_page=page,
+        total_pages=total_pages,
         total_images=total,
         folders=all_folders,
         subfolders=subfolders,
-        total_subfolders=total_subfolders,
-        has_more_subfolders=has_more_subfolders,
         breadcrumbs=breadcrumbs,
         tags=tags
     )

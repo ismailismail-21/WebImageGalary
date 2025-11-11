@@ -165,34 +165,6 @@
     min-width: 150px;
 }
 
-/* Video Specific Styles */
-.gallery-video {
-    object-fit: cover;
-}
-
-.video-play-icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px;
-    height: 60px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 24px;
-    pointer-events: none;
-    transition: all 0.3s ease;
-}
-
-.grid-item:hover .video-play-icon {
-    background-color: rgba(102, 126, 234, 0.9);
-    transform: translate(-50%, -50%) scale(1.1);
-}
-
 .grid-item:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

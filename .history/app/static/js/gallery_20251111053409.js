@@ -135,30 +135,17 @@ function setupEventListeners() {
 function openLightbox(imgElement) {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxVideo = document.getElementById('lightboxVideo');
 
     // Get filename from the grid item
     const gridItem = imgElement.closest('.grid-item');
     const filename = gridItem.dataset.filename;
-    const isVideo = gridItem.dataset.isVideo === 'true';
     const index = Array.from(document.querySelectorAll('.grid-item')).indexOf(gridItem);
 
     currentImageIndex = index;
 
-    // Show either video or image
-    if (isVideo) {
-        lightboxImage.style.display = 'none';
-        lightboxVideo.style.display = 'block';
-        lightboxVideo.querySelector('source').src = imgElement.querySelector('source').src;
-        lightboxVideo.load();
-    } else {
-        lightboxVideo.style.display = 'none';
-        lightboxImage.style.display = 'block';
-        lightboxImage.src = imgElement.src;
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    }
-    
+    lightboxImage.src = imgElement.src;
+    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+    lightboxImage.style.cursor = '';
     lightbox.classList.add('active');
 
     updateLightboxFavorite();
@@ -168,13 +155,6 @@ function openLightbox(imgElement) {
 
 function closeLightbox() {
     const lightbox = document.getElementById('lightbox');
-    const lightboxVideo = document.getElementById('lightboxVideo');
-    
-    // Pause video if playing
-    if (lightboxVideo) {
-        lightboxVideo.pause();
-    }
-    
     lightbox.classList.remove('active');
     document.body.style.overflow = 'auto';
 }
@@ -194,27 +174,10 @@ function prevImage() {
 function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxVideo = document.getElementById('lightboxVideo');
-    const isVideo = gridItem.dataset.isVideo === 'true';
 
-    // Pause any playing video
-    if (lightboxVideo) {
-        lightboxVideo.pause();
-    }
-
-    // Show either video or image
-    if (isVideo) {
-        lightboxImage.style.display = 'none';
-        lightboxVideo.style.display = 'block';
-        lightboxVideo.querySelector('source').src = img.querySelector('source').src;
-        lightboxVideo.load();
-    } else {
-        lightboxVideo.style.display = 'none';
-        lightboxImage.style.display = 'block';
-        lightboxImage.src = img.src;
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    }
+    lightboxImage.src = img.src;
+    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+    lightboxImage.style.cursor = '';
 
     updateLightboxCounter();
     updateLightboxFavorite();

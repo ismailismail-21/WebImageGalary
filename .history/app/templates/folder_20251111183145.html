@@ -102,21 +102,11 @@
     <div class="images-grid" id="imagesGrid">
         {% for image in images %}
         <div class="grid-item" data-filename="{{ image.filename }}" data-folder="{{ folder_name }}"
-            data-is-video="{{ 'true' if image.get('is_video') else 'false' }}"
             style="width: {{ image.get('calc_width', 200) }}px; height: {{ image.get('calc_height', 200) }}px;">
 
-            {% if image.get('is_video') %}
-            <video class="gallery-image gallery-video" data-width="{{ image.width }}" data-height="{{ image.height }}"
-                preload="metadata" onclick="openLightbox(this)">
-                <source src="/api/image/{{ folder_name }}/{{ image.filename }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="video-play-icon">▶</div>
-            {% else %}
             <img src="/api/image/{{ folder_name }}/{{ image.filename }}" alt="{{ image.filename }}"
                 class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}"
                 loading="lazy" onclick="openLightbox(this)">
-            {% endif %}
 
             <!-- Image Controls (Heart and Delete) -->
             <div class="image-controls">
@@ -145,30 +135,44 @@
         </div>
         {% endfor %}
     </div>
-    
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" style="display: none; text-align: center; padding: 20px;">
-        <div class="spinner"></div>
-        <p style="color: #666; margin-top: 10px;">Loading more images...</p>
+</div>
+{% endif %}
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if current_page > 1 %}
+    <a href="?page=1" class="page-btn">« First</a>
+    <a href="?page={{ current_page - 1 }}" class="page-btn">‹ Previous</a>
+    {% endif %}
+
+    <div class="page-numbers">
+        {% set start_page = [1, current_page - 2] | max %}
+        {% set end_page = [total_pages, current_page + 2] | min %}
+
+        {% if start_page > 1 %}<span class="page-dots">...</span>{% endif %}
+
+        {% for page_num in range(start_page, end_page + 1) %}
+        {% if page_num == current_page %}
+        <span class="page-num current">{{ page_num }}</span>
+        {% else %}
+        <a href="?page={{ page_num }}" class="page-num">{{ page_num }}</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if end_page < total_pages %}<span class="page-dots">...</span>{% endif %}
     </div>
-    
-    <!-- Load More Button -->
-    <div id="loadMoreContainer" style="text-align: center; margin: 20px 0; display: none;">
-        <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreImages()">
-            Load More Images
-        </button>
-    </div>
+
+    {% if current_page < total_pages %} <a href="?page={{ current_page + 1 }}" class="page-btn">Next ›</a>
+        <a href="?page={{ total_pages }}" class="page-btn">Last »</a>
+        {% endif %}
 </div>
 {% endif %}
 
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox">
     <div class="lightbox-container">
-        <img id="lightboxImage" src="" alt="" class="lightbox-image" style="display: block;">
-        <video id="lightboxVideo" class="lightbox-image" controls style="display: none;">
-            <source src="" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+        <img id="lightboxImage" src="" alt="" class="lightbox-image">
 
         <div class="lightbox-info">
             <span id="lightboxCounter">1 / 1</span>
@@ -220,21 +224,10 @@
     const folderName = '{{ folder_name }}';
     let allTags = {{ tags | tojson }};
     let tagsVisible = true;
-    
-    // Lazy loading state
-    let currentImagePage = 1;
-    let currentSubfolderPage = 1;
-    let isLoadingImages = false;
-    let isLoadingSubfolders = false;
-    let hasMoreImages = {{ 'true' if images|length < total_images else 'false' }};
-    let totalImages = {{ total_images }};
-    let loadedImages = {{ images|length }};
 
     // Load tags and favorites for all images
     document.addEventListener('DOMContentLoaded', () => {
         loadTagsAndFavorites();
-        setupIntersectionObserver();
-        updateLoadMoreButton();
     });
 
     function loadTagsAndFavorites() {
@@ -444,209 +437,5 @@
             });
         }
     });
-
-    // Lazy Loading Functions
-    function setupIntersectionObserver() {
-        // Only setup if there are more images to load
-        if (!hasMoreImages) return;
-        
-        const options = {
-            root: null,
-            rootMargin: '200px',
-            threshold: 0.1
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting && hasMoreImages && !isLoadingImages) {
-                    loadMoreImages();
-                }
-            });
-        }, options);
-        
-        // Observe the load more container
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        if (loadMoreContainer) {
-            loadMoreContainer.style.display = 'block';
-            observer.observe(loadMoreContainer);
-        }
-    }
-    
-    function updateLoadMoreButton() {
-        const loadMoreContainer = document.getElementById('loadMoreContainer');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        
-        if (hasMoreImages) {
-            loadMoreContainer.style.display = 'block';
-            loadMoreBtn.textContent = `Load More (${loadedImages} / ${totalImages})`;
-        } else {
-            loadMoreContainer.style.display = 'none';
-        }
-    }
-    
-    async function loadMoreImages() {
-        if (isLoadingImages || !hasMoreImages) return;
-        
-        isLoadingImages = true;
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        
-        loadingIndicator.style.display = 'block';
-        loadMoreBtn.disabled = true;
-        
-        try {
-            currentImagePage++;
-            const response = await fetch(`/api/images/${folderName}?page=${currentImagePage}&per_page=50`);
-            const data = await response.json();
-            
-            if (data.images && data.images.length > 0) {
-                const imagesGrid = document.getElementById('imagesGrid');
-                
-                data.images.forEach(image => {
-                    const gridItem = createImageGridItem(image);
-                    imagesGrid.appendChild(gridItem);
-                    
-                    // Load tags and favorites for new image
-                    loadImageTags(folderName, image.filename);
-                    checkImageFavorite(folderName, image.filename);
-                });
-                
-                loadedImages += data.images.length;
-                hasMoreImages = data.has_more;
-                
-                // Update all images array for lightbox
-                loadAllImages();
-            }
-            
-            updateLoadMoreButton();
-        } catch (error) {
-            console.error('Error loading more images:', error);
-            showNotification('Error loading more images', 'error');
-        } finally {
-            isLoadingImages = false;
-            loadingIndicator.style.display = 'none';
-            loadMoreBtn.disabled = false;
-        }
-    }
-    
-    function createImageGridItem(image) {
-        const gridItem = document.createElement('div');
-        gridItem.className = 'grid-item';
-        gridItem.dataset.filename = image.filename;
-        gridItem.dataset.folder = folderName;
-        gridItem.dataset.isVideo = image.is_video ? 'true' : 'false';
-        gridItem.style.width = `${image.calc_width || 200}px`;
-        gridItem.style.height = `${image.calc_height || 200}px`;
-        
-        const mediaHtml = image.is_video ? `
-            <video class="gallery-image gallery-video" data-width="${image.width}" data-height="${image.height}"
-                preload="metadata" onclick="openLightbox(this)">
-                <source src="/api/image/${folderName}/${image.filename}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="video-play-icon">▶</div>
-        ` : `
-            <img src="/api/image/${folderName}/${image.filename}" 
-                 alt="${image.filename}"
-                 class="gallery-image" 
-                 data-width="${image.width}" 
-                 data-height="${image.height}"
-                 loading="lazy"
-                 onclick="openLightbox(this)">
-        `;
-        
-        gridItem.innerHTML = `
-            ${mediaHtml}
-            
-            <div class="image-controls">
-                <button class="heart-btn"
-                    onclick="event.stopPropagation(); toggleImageFavorite('${folderName}', '${image.filename}', this)"
-                    title="Add to favorites">♡</button>
-                <button class="delete-btn"
-                    onclick="event.stopPropagation(); deleteImage('${folderName}', '${image.filename}', this)"
-                    title="Delete image">🗑️</button>
-            </div>
-            
-            <div class="tag-dropdown" id="tag-dropdown-${image.filename}" style="display: none;">
-                <div class="tag-dropdown-content" id="tag-list-${image.filename}">
-                </div>
-            </div>
-            
-            <button class="tag-circle-btn"
-                onclick="event.stopPropagation(); toggleTagDropdown('${folderName}', '${image.filename}')"
-                title="Manage tags">+</button>
-            
-            <div class="image-tags" id="tags-${image.filename}"></div>
-        `;
-        
-        return gridItem;
-    }
-    
-    async function loadMoreSubfolders() {
-        if (isLoadingSubfolders) return;
-        
-        isLoadingSubfolders = true;
-        const btn = document.getElementById('loadMoreSubfoldersBtn');
-        btn.disabled = true;
-        btn.textContent = 'Loading...';
-        
-        try {
-            currentSubfolderPage++;
-            const response = await fetch(`/api/subfolders/${folderName}?page=${currentSubfolderPage}&per_page=20`);
-            const data = await response.json();
-            
-            if (data.subfolders && data.subfolders.length > 0) {
-                const subfoldersGrid = document.getElementById('subfoldersGrid');
-                
-                data.subfolders.forEach(subfolder => {
-                    const card = createSubfolderCard(subfolder);
-                    subfoldersGrid.appendChild(card);
-                });
-                
-                if (!data.has_more) {
-                    btn.style.display = 'none';
-                }
-            }
-        } catch (error) {
-            console.error('Error loading more subfolders:', error);
-            showNotification('Error loading more subfolders', 'error');
-        } finally {
-            isLoadingSubfolders = false;
-            btn.disabled = false;
-            btn.textContent = 'Load More Subfolders';
-        }
-    }
-    
-    function createSubfolderCard(subfolder) {
-        const card = document.createElement('a');
-        card.href = `/folder/${subfolder.path}`;
-        card.className = 'subfolder-card';
-        
-        const thumbnailHtml = subfolder.thumbnail 
-            ? `<img src="/api/image/${subfolder.thumbnail}" alt="${subfolder.name}" class="subfolder-thumb-img" loading="lazy">`
-            : `<div class="subfolder-icon-fallback">${subfolder.has_subfolders ? '📁' : '🖼️'}</div>`;
-        
-        const folderInfo = [];
-        if (subfolder.has_subfolders) {
-            folderInfo.push(`<span class="subfolder-meta">${subfolder.subfolder_count} folder${subfolder.subfolder_count > 1 ? 's' : ''}</span>`);
-        }
-        if (subfolder.count > 0) {
-            folderInfo.push(`<span class="subfolder-meta">${subfolder.count} image${subfolder.count > 1 ? 's' : ''}</span>`);
-        }
-        
-        card.innerHTML = `
-            <div class="subfolder-thumbnail">
-                ${thumbnailHtml}
-            </div>
-            <div class="subfolder-overlay">
-                <div class="subfolder-name">${subfolder.name}</div>
-                <div class="subfolder-info">
-                    ${folderInfo.join('')}
-                </div>
-            </div>
-        `;
-        
-        return card;
-    }
 </script>
 {% endblock %}

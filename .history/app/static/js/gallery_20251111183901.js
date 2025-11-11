@@ -194,27 +194,10 @@ function prevImage() {
 function loadImageToLightbox(gridItem) {
     const img = gridItem.querySelector('.gallery-image');
     const lightboxImage = document.getElementById('lightboxImage');
-    const lightboxVideo = document.getElementById('lightboxVideo');
-    const isVideo = gridItem.dataset.isVideo === 'true';
 
-    // Pause any playing video
-    if (lightboxVideo) {
-        lightboxVideo.pause();
-    }
-
-    // Show either video or image
-    if (isVideo) {
-        lightboxImage.style.display = 'none';
-        lightboxVideo.style.display = 'block';
-        lightboxVideo.querySelector('source').src = img.querySelector('source').src;
-        lightboxVideo.load();
-    } else {
-        lightboxVideo.style.display = 'none';
-        lightboxImage.style.display = 'block';
-        lightboxImage.src = img.src;
-        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-        lightboxImage.style.cursor = '';
-    }
+    lightboxImage.src = img.src;
+    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+    lightboxImage.style.cursor = '';
 
     updateLightboxCounter();
     updateLightboxFavorite();
