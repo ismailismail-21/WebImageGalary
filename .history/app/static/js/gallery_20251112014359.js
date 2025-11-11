@@ -333,19 +333,14 @@ function openLightbox(imgElement) {
     }
 
     // Show/hide fullscreen button based on content type and device
-    const isIPhone = /iPhone/i.test(navigator.userAgent);
-    const isIPad = /iPad/i.test(navigator.userAgent);
-    const isOtherMobile = /Android|webOS|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !isIPhone && !isIPad;
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (fullscreenBtn) {
-        if (isIPhone) {
-            // Hide fullscreen button on iPhone - users should tap video controls directly
-            fullscreenBtn.style.display = 'none';
-        } else if ((isIPad || isOtherMobile) && !isVideo) {
-            // Hide fullscreen button on other mobile devices for images (not supported)
+        if (isMobile && !isVideo) {
+            // Hide fullscreen button on mobile for images (not supported)
             fullscreenBtn.style.display = 'none';
         } else {
-            // Show fullscreen button for videos on iPad/other mobile or all content on desktop
+            // Show fullscreen button for videos on mobile or all content on desktop
             fullscreenBtn.style.display = 'flex';
         }
     }
@@ -690,19 +685,14 @@ function loadImageToLightbox(gridItem) {
     }
 
     // Show/hide fullscreen button based on content type and device
-    const isIPhone = /iPhone/i.test(navigator.userAgent);
-    const isIPad = /iPad/i.test(navigator.userAgent);
-    const isOtherMobile = /Android|webOS|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !isIPhone && !isIPad;
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (fullscreenBtn) {
-        if (isIPhone) {
-            // Hide fullscreen button on iPhone - users should tap video controls directly
-            fullscreenBtn.style.display = 'none';
-        } else if ((isIPad || isOtherMobile) && !isVideo) {
-            // Hide fullscreen button on other mobile devices for images (not supported)
+        if (isMobile && !isVideo) {
+            // Hide fullscreen button on mobile for images (not supported)
             fullscreenBtn.style.display = 'none';
         } else {
-            // Show fullscreen button for videos on iPad/other mobile or all content on desktop
+            // Show fullscreen button for videos on mobile or all content on desktop
             fullscreenBtn.style.display = 'flex';
         }
     }

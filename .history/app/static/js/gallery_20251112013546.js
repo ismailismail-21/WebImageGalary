@@ -333,19 +333,14 @@ function openLightbox(imgElement) {
     }
 
     // Show/hide fullscreen button based on content type and device
-    const isIPhone = /iPhone/i.test(navigator.userAgent);
-    const isIPad = /iPad/i.test(navigator.userAgent);
-    const isOtherMobile = /Android|webOS|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !isIPhone && !isIPad;
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (fullscreenBtn) {
-        if (isIPhone) {
-            // Hide fullscreen button on iPhone - users should tap video controls directly
-            fullscreenBtn.style.display = 'none';
-        } else if ((isIPad || isOtherMobile) && !isVideo) {
-            // Hide fullscreen button on other mobile devices for images (not supported)
+        if (isMobile && !isVideo) {
+            // Hide fullscreen button on mobile for images (not supported)
             fullscreenBtn.style.display = 'none';
         } else {
-            // Show fullscreen button for videos on iPad/other mobile or all content on desktop
+            // Show fullscreen button for videos on mobile or all content on desktop
             fullscreenBtn.style.display = 'flex';
         }
     }
@@ -376,43 +371,30 @@ function toggleFullscreen() {
     const activeElement = lightboxImage.style.display !== 'none' ? lightboxImage : lightboxVideo;
     const isVideo = lightboxVideo.style.display !== 'none';
 
-    // Check device types
-    const isIPhone = /iPhone/i.test(navigator.userAgent);
-    const isIPad = /iPad/i.test(navigator.userAgent);
-    const isOtherMobile = /Android|webOS|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !isIPhone && !isIPad;
+    // Check if we're on a mobile device
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // iPhone has very limited fullscreen support - only native video controls work
-    if (isIPhone) {
+    // On mobile, fullscreen API has limited support
+    if (isMobile) {
         if (isVideo) {
-            // On iPhone, programmatic fullscreen doesn't work reliably
-            // Show message directing user to tap video controls for native fullscreen
-            showNotification('Tap the video controls (⛶) to enter fullscreen mode', 'info');
-        } else {
-            // Images don't support fullscreen on iPhone
-            showNotification('Image fullscreen is not supported on iPhone. Use device rotation for better viewing.', 'info');
-        }
-        return;
-    }
-
-    // iPad and other mobile devices have better fullscreen support
-    if (isIPad || isOtherMobile) {
-        if (isVideo) {
-            // For videos on iPad/other mobile, try programmatic fullscreen
+            // For videos on mobile, try to use the video's native fullscreen controls
+            // Most mobile browsers only allow fullscreen through user gesture on video elements
             try {
                 if (activeElement.requestFullscreen) {
                     activeElement.requestFullscreen().catch(() => {
-                        showNotification('Video fullscreen requires user interaction. Try tapping the video controls.', 'info');
+                        showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
                     });
                 } else if (activeElement.webkitRequestFullscreen) {
                     activeElement.webkitRequestFullscreen();
                 } else {
-                    showNotification('Fullscreen not supported on this device', 'info');
+                    // Fallback: show message that fullscreen isn't available
+                    showNotification('Fullscreen not supported on this mobile browser', 'info');
                 }
             } catch (e) {
-                showNotification('Video fullscreen requires user interaction. Try tapping the video controls.', 'info');
+                showNotification('Video fullscreen requires user interaction on mobile devices', 'info');
             }
         } else {
-            // For images on mobile, fullscreen is not supported
+            // For images on mobile, fullscreen is not supported in most browsers
             showNotification('Image fullscreen is not supported on mobile browsers. Use device rotation for better viewing.', 'info');
         }
         return;
@@ -690,19 +672,14 @@ function loadImageToLightbox(gridItem) {
     }
 
     // Show/hide fullscreen button based on content type and device
-    const isIPhone = /iPhone/i.test(navigator.userAgent);
-    const isIPad = /iPad/i.test(navigator.userAgent);
-    const isOtherMobile = /Android|webOS|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && !isIPhone && !isIPad;
+    const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     if (fullscreenBtn) {
-        if (isIPhone) {
-            // Hide fullscreen button on iPhone - users should tap video controls directly
-            fullscreenBtn.style.display = 'none';
-        } else if ((isIPad || isOtherMobile) && !isVideo) {
-            // Hide fullscreen button on other mobile devices for images (not supported)
+        if (isMobile && !isVideo) {
+            // Hide fullscreen button on mobile for images (not supported)
             fullscreenBtn.style.display = 'none';
         } else {
-            // Show fullscreen button for videos on iPad/other mobile or all content on desktop
+            // Show fullscreen button for videos on mobile or all content on desktop
             fullscreenBtn.style.display = 'flex';
         }
     }
