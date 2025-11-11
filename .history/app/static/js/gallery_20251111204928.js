@@ -277,15 +277,12 @@ function zoomImageAtPoint(direction, mouseX, mouseY, imgWidth, imgHeight) {
     const currentX = translateMatch ? parseFloat(translateMatch[1]) : 0;
     const currentY = translateMatch ? parseFloat(translateMatch[2]) : 0;
 
-    // Calculate new scale - Increased max zoom from 3x to 6x
+    // Calculate new scale
     let newScale = currentScale;
-    // Use adaptive zoom step: smaller steps at higher zoom levels for finer control
-    const zoomStep = currentScale < 2 ? 0.25 : 0.3;
-    
     if (direction === 'in') {
-        newScale = Math.min(currentScale + zoomStep, 6);
+        newScale = Math.min(currentScale + 0.2, 3);
     } else {
-        newScale = Math.max(currentScale - zoomStep, 1);
+        newScale = Math.max(currentScale - 0.2, 1);
     }
 
     // Reset translation when zooming back to 1x
