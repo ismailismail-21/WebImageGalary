@@ -41,12 +41,10 @@ def get_all_folders(dataset_path, parent_path=''):
                 image_count = len(images)
                 
                 # Get first image as thumbnail
-                first_image = None
-                if images:
-                    # Image is in the current folder
-                    first_image = os.path.join(rel_path, images[0])
-                else:
-                    # If no images in current folder, try to find first image in subfolders
+                first_image = images[0] if images else None
+                
+                # If no images in current folder, try to find first image in subfolders
+                if not first_image:
                     try:
                         for sub in sorted(os.listdir(item_path)):
                             sub_path = os.path.join(item_path, sub)
@@ -54,7 +52,7 @@ def get_all_folders(dataset_path, parent_path=''):
                                 sub_images = [f for f in os.listdir(sub_path)
                                             if is_supported_image(f) and os.path.isfile(os.path.join(sub_path, f))]
                                 if sub_images:
-                                    first_image = os.path.join(rel_path, sub, sub_images[0])
+                                    first_image = f"{item}/{sub}/{sub_images[0]}"
                                     break
                     except:
                         pass

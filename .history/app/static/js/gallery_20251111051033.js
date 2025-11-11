@@ -119,8 +119,7 @@ function openLightbox(imgElement) {
     currentImageIndex = index;
 
     lightboxImage.src = imgElement.src;
-    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-    lightboxImage.style.cursor = '';
+    lightboxImage.style.transform = 'scale(1)';
     lightbox.classList.add('active');
 
     updateLightboxFavorite();

@@ -119,8 +119,7 @@ function openLightbox(imgElement) {
     currentImageIndex = index;
 
     lightboxImage.src = imgElement.src;
-    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-    lightboxImage.style.cursor = '';
+    lightboxImage.style.transform = 'scale(1)';
     lightbox.classList.add('active');
 
     updateLightboxFavorite();
@@ -151,8 +150,7 @@ function loadImageToLightbox(gridItem) {
     const lightboxImage = document.getElementById('lightboxImage');
 
     lightboxImage.src = img.src;
-    lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
-    lightboxImage.style.cursor = '';
+    lightboxImage.style.transform = 'scale(1)';
 
     updateLightboxCounter();
     updateLightboxFavorite();
@@ -203,108 +201,6 @@ function zoomImage(direction) {
         lightboxImage.style.transform = `scale(${newScale}) translate(${currentX}px, ${currentY}px)`;
     }
 }
-
-// Pan/drag functionality for zoomed images with middle mouse button
-let isPanning = false;
-let startX = 0;
-let startY = 0;
-let currentTranslateX = 0;
-let currentTranslateY = 0;
-
-function setupImagePanning() {
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImage = document.getElementById('lightboxImage');
-    
-    if (!lightbox || !lightboxImage) return;
-
-    // Start panning on middle mouse button down
-    lightboxImage.addEventListener('mousedown', (e) => {
-        // Middle mouse button (button === 1)
-        if (e.button === 1) {
-            e.preventDefault();
-            
-            const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-            const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-            const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-            
-            // Only allow panning when zoomed in
-            if (currentScale > 1) {
-                isPanning = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                
-                const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-                currentTranslateX = translateMatch ? parseFloat(translateMatch[1]) : 0;
-                currentTranslateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
-                
-                lightboxImage.style.cursor = 'grabbing';
-            }
-        }
-    });
-
-    // Pan/move the image
-    lightboxImage.addEventListener('mousemove', (e) => {
-        if (!isPanning) return;
-        
-        e.preventDefault();
-        
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        
-        const newX = currentTranslateX + deltaX;
-        const newY = currentTranslateY + deltaY;
-        
-        const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-        const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-        const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-        
-        lightboxImage.style.transform = `scale(${currentScale}) translate(${newX}px, ${newY}px)`;
-    });
-
-    // Stop panning on mouse up
-    const stopPanning = () => {
-        if (isPanning) {
-            isPanning = false;
-            const lightboxImage = document.getElementById('lightboxImage');
-            if (lightboxImage) {
-                lightboxImage.style.cursor = '';
-            }
-        }
-    };
-    
-    lightboxImage.addEventListener('mouseup', stopPanning);
-    lightboxImage.addEventListener('mouseleave', stopPanning);
-    document.addEventListener('mouseup', stopPanning);
-
-    // Prevent context menu on middle mouse button
-    lightboxImage.addEventListener('contextmenu', (e) => {
-        if (e.button === 1) {
-            e.preventDefault();
-        }
-    });
-
-    // Change cursor when hovering over zoomed image
-    lightboxImage.addEventListener('mouseover', () => {
-        const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
-        const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-        const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
-        
-        if (currentScale > 1 && !isPanning) {
-            lightboxImage.style.cursor = 'grab';
-        }
-    });
-
-    lightboxImage.addEventListener('mouseout', () => {
-        if (!isPanning) {
-            lightboxImage.style.cursor = '';
-        }
-    });
-}
-
-// Call setup when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    setupImagePanning();
-});
 
 function deleteImage(folderName, filename, button) {
     if (!confirm(`Delete "${filename}"? This action cannot be undone.`)) return;

@@ -712,8 +712,12 @@
         gap: 10px;
     }
 
-    .subfolder-icon-fallback {
-        font-size: 3em;
+    .subfolder-card {
+        padding: 15px;
+    }
+
+    .subfolder-icon {
+        font-size: 2.5em;
     }
 
     .lightbox-nav {
