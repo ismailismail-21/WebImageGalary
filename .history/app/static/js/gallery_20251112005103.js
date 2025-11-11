@@ -451,8 +451,8 @@ function setupNativeFullscreenTouchNavigation() {
 
     // Listen for fullscreen changes
     const fullscreenChangeHandler = () => {
-        const fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
-            document.mozFullScreenElement || document.msFullscreenElement;
+        const fsElement = document.fullscreenElement || document.webkitFullscreenElement || 
+                          document.mozFullScreenElement || document.msFullscreenElement;
 
         if (fsElement) {
             // Entered fullscreen: attach handlers to the fullscreen element

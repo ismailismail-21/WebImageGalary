@@ -410,70 +410,9 @@ function setupLightboxTouchNavigation() {
     }, { passive: true });
 }
 
-/* Native fullscreen touch navigation: for when user taps video controls "fullscreen" button */
-function setupNativeFullscreenTouchNavigation() {
-    let startX = 0;
-    let startY = 0;
-    let isTouching = false;
-
-    const handleTouchStart = (e) => {
-        if (e.touches && e.touches.length > 0) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            isTouching = true;
-        }
-    };
-
-    const handleTouchEnd = (e) => {
-        if (!isTouching) return;
-        isTouching = false;
-
-        const endX = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientX : startX;
-        const endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : startY;
-
-        const deltaX = startX - endX;
-        const deltaY = startY - endY;
-
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        // For videos in fullscreen, use vertical swipe
-        const vertThreshold = 50;
-
-        if (deltaY > vertThreshold) {
-            // swipe up -> next
-            nextImage();
-        } else if (deltaY < -vertThreshold) {
-            // swipe down -> previous
-            prevImage();
-        }
-    };
-
-    // Listen for fullscreen changes
-    const fullscreenChangeHandler = () => {
-        const fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
-            document.mozFullScreenElement || document.msFullscreenElement;
-
-        if (fsElement) {
-            // Entered fullscreen: attach handlers to the fullscreen element
-            fsElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-            fsElement.addEventListener('touchend', handleTouchEnd, { passive: true });
-        } else {
-            // Exited fullscreen: clean up (handlers will be removed when element is no longer fullscreen)
-            // No explicit cleanup needed as handlers are attached to the specific element
-        }
-    };
-
-    document.addEventListener('fullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('webkitfullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('mozfullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('MSFullscreenChange', fullscreenChangeHandler);
-}
-
 // Setup lightbox touch nav on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     setupLightboxTouchNavigation();
-    setupNativeFullscreenTouchNavigation();
 });
 
 function nextImage() {

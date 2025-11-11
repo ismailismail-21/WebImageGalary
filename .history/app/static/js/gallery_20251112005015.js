@@ -353,65 +353,9 @@ function toggleFullscreen() {
 /* Lightbox touch navigation: horizontal for images, vertical for videos */
 function setupLightboxTouchNavigation() {
     const lightbox = document.getElementById('lightbox');
+    const lightboxVideo = document.getElementById('lightboxVideo');
     if (!lightbox) return;
 
-    let startX = 0;
-    let startY = 0;
-    let isTouching = false;
-
-    lightbox.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches.length > 0) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            isTouching = true;
-        }
-    }, { passive: true });
-
-    lightbox.addEventListener('touchend', (e) => {
-        if (!isTouching) return;
-        isTouching = false;
-
-        const endX = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientX : startX;
-        const endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : startY;
-
-        const deltaX = startX - endX;
-        const deltaY = startY - endY;
-
-        const lightboxImage = document.getElementById('lightboxImage');
-        const lightboxVideo = document.getElementById('lightboxVideo');
-        const isVideo = lightboxVideo && lightboxVideo.style.display !== 'none';
-
-        const absX = Math.abs(deltaX);
-        const absY = Math.abs(deltaY);
-
-        // thresholds
-        const horizThreshold = 50; // px
-        const vertThreshold = 50; // px
-
-        if (isVideo) {
-            // vertical navigation for videos
-            if (deltaY > vertThreshold) {
-                // swipe up -> next video
-                nextImage();
-            } else if (deltaY < -vertThreshold) {
-                // swipe down -> previous video
-                prevImage();
-            }
-        } else {
-            // horizontal navigation for images
-            if (deltaX > horizThreshold && absX > absY) {
-                // swipe left -> next image
-                nextImage();
-            } else if (deltaX < -horizThreshold && absX > absY) {
-                // swipe right -> previous image
-                prevImage();
-            }
-        }
-    }, { passive: true });
-}
-
-/* Native fullscreen touch navigation: for when user taps video controls "fullscreen" button */
-function setupNativeFullscreenTouchNavigation() {
     let startX = 0;
     let startY = 0;
     let isTouching = false;
@@ -434,46 +378,55 @@ function setupNativeFullscreenTouchNavigation() {
         const deltaX = startX - endX;
         const deltaY = startY - endY;
 
+        const lightboxImage = document.getElementById('lightboxImage');
+        const isVideo = lightboxVideo && lightboxVideo.style.display !== 'none';
+
         const absX = Math.abs(deltaX);
         const absY = Math.abs(deltaY);
 
-        // For videos in fullscreen, use vertical swipe
-        const vertThreshold = 50;
+        // thresholds
+        const horizThreshold = 50; // px
+        const vertThreshold = 50; // px
 
-        if (deltaY > vertThreshold) {
-            // swipe up -> next
-            nextImage();
-        } else if (deltaY < -vertThreshold) {
-            // swipe down -> previous
-            prevImage();
-        }
-    };
-
-    // Listen for fullscreen changes
-    const fullscreenChangeHandler = () => {
-        const fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
-            document.mozFullScreenElement || document.msFullscreenElement;
-
-        if (fsElement) {
-            // Entered fullscreen: attach handlers to the fullscreen element
-            fsElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-            fsElement.addEventListener('touchend', handleTouchEnd, { passive: true });
+        if (isVideo) {
+            // vertical navigation for videos
+            if (deltaY > vertThreshold) {
+                // swipe up -> next video
+                e.preventDefault();
+                nextImage();
+            } else if (deltaY < -vertThreshold) {
+                // swipe down -> previous video
+                e.preventDefault();
+                prevImage();
+            }
         } else {
-            // Exited fullscreen: clean up (handlers will be removed when element is no longer fullscreen)
-            // No explicit cleanup needed as handlers are attached to the specific element
+            // horizontal navigation for images
+            if (deltaX > horizThreshold && absX > absY) {
+                // swipe left -> next image
+                e.preventDefault();
+                nextImage();
+            } else if (deltaX < -horizThreshold && absX > absY) {
+                // swipe right -> previous image
+                e.preventDefault();
+                prevImage();
+            }
         }
     };
 
-    document.addEventListener('fullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('webkitfullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('mozfullscreenchange', fullscreenChangeHandler);
-    document.addEventListener('MSFullscreenChange', fullscreenChangeHandler);
+    // Attach to lightbox container
+    lightbox.addEventListener('touchstart', handleTouchStart, { passive: false });
+    lightbox.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    // Also attach to video element for fullscreen mode
+    if (lightboxVideo) {
+        lightboxVideo.addEventListener('touchstart', handleTouchStart, { passive: false });
+        lightboxVideo.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
 }
 
 // Setup lightbox touch nav on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
     setupLightboxTouchNavigation();
-    setupNativeFullscreenTouchNavigation();
 });
 
 function nextImage() {
