@@ -62,156 +62,156 @@ function loadAllImages() {
         index: index
     }));
 
-    /* ---------------- Reels / Vertical feed (mobile) ---------------- */
-    // Initialize Reels mode automatically on touch devices when folder has videos
-    function initReelsModeIfNeeded() {
-        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-        const videos = document.querySelectorAll('.gallery-video');
-        if (isTouch && videos.length > 0) {
-            enableReelsMode();
+        /* ---------------- Reels / Vertical feed (mobile) ---------------- */
+        // Initialize Reels mode automatically on touch devices when folder has videos
+        function initReelsModeIfNeeded() {
+            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+            const videos = document.querySelectorAll('.gallery-video');
+            if (isTouch && videos.length > 0) {
+                enableReelsMode();
+            }
         }
-    }
 
-    function enableReelsMode() {
-        const container = document.getElementById('galleryContainer');
-        if (!container) return;
-        document.body.classList.add('reels-view');
+        function enableReelsMode() {
+            const container = document.getElementById('galleryContainer');
+            if (!container) return;
+            document.body.classList.add('reels-view');
 
-        // Make imagesGrid scrollable full-page vertical feed
-        const grid = document.getElementById('imagesGrid');
-        if (!grid) return;
+            // Make imagesGrid scrollable full-page vertical feed
+            const grid = document.getElementById('imagesGrid');
+            if (!grid) return;
 
-        // Ensure each grid-item fills viewport
-        grid.querySelectorAll('.grid-item').forEach(item => {
-            item.style.width = '100%';
-            item.style.height = '100vh';
+            // Ensure each grid-item fills viewport
+            grid.querySelectorAll('.grid-item').forEach(item => {
+                item.style.width = '100%';
+                item.style.height = '100vh';
+            });
+
+            setupReelsAutoplay();
+            setupReelsTouchNavigation(grid);
+        }
+
+        function setupReelsAutoplay() {
+            const options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: [0.5]
+            };
+
+            const callback = (entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target.querySelector('video');
+                    if (!video) return;
+
+                    if (entry.intersectionRatio >= 0.5) {
+                        // Play and ensure muted/playsinline for mobile autoplay
+                        video.muted = true;
+                        video.playsInline = true;
+                        const playPromise = video.play();
+                        if (playPromise && typeof playPromise.then === 'function') {
+                            playPromise.catch(() => {
+                                // Autoplay blocked: show overlay play icon (already present)
+                            });
+                        }
+                    } else {
+                        video.pause();
+                    }
+                });
+            };
+
+            const observer = new IntersectionObserver(callback, options);
+            document.querySelectorAll('.grid-item').forEach(item => observer.observe(item));
+        }
+
+        function setupReelsTouchNavigation(grid) {
+            let startY = 0;
+            let endY = 0;
+
+            grid.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length > 0) startY = e.touches[0].clientY;
+            }, { passive: true });
+
+            grid.addEventListener('touchend', (e) => {
+                endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : 0;
+                const delta = startY - endY;
+                const threshold = 50; // minimal swipe distance
+                if (Math.abs(delta) > threshold) {
+                    // Swipe up -> next, Swipe down -> prev
+                    if (delta > 0) {
+                        scrollToNext(grid);
+                    } else {
+                        scrollToPrev(grid);
+                    }
+                }
+            }, { passive: true });
+        }
+
+        function scrollToNext(grid) {
+            const scrollTop = grid.scrollTop;
+            const vh = window.innerHeight;
+            grid.scrollTo({ top: scrollTop + vh, behavior: 'smooth' });
+        }
+
+        function scrollToPrev(grid) {
+            const scrollTop = grid.scrollTop;
+            const vh = window.innerHeight;
+            grid.scrollTo({ top: Math.max(0, scrollTop - vh), behavior: 'smooth' });
+        }
+
+        // Run reels init after DOM content to check for touch devices
+        document.addEventListener('DOMContentLoaded', () => {
+            // Slight delay to allow lazy elements to be inserted
+            setTimeout(initReelsModeIfNeeded, 300);
         });
 
-        setupReelsAutoplay();
-        setupReelsTouchNavigation(grid);
-    }
+        /* ---------------- Lightbox video playback/loop fixes ---------------- */
+        // Ensure lightbox plays videos and respects loop; fallback to replay on 'ended'
+        const originalOpenLightbox = window.openLightbox;
+        if (typeof originalOpenLightbox === 'function') {
+            window.openLightbox = function(imgElement) {
+                originalOpenLightbox(imgElement);
 
-    function setupReelsAutoplay() {
-        const options = {
-            root: null,
-            rootMargin: '0px',
-            threshold: [0.5]
-        };
+                // If the lightbox contains a video, try to play it and ensure loop is set
+                const lightboxVideo = document.getElementById('lightboxVideo');
+                if (lightboxVideo && lightboxVideo.style.display !== 'none') {
+                    lightboxVideo.loop = true;
+                    lightboxVideo.muted = true; // allow autoplay on mobile
+                    lightboxVideo.playsInline = true;
 
-        const callback = (entries) => {
-            entries.forEach(entry => {
-                const video = entry.target.querySelector('video');
-                if (!video) return;
-
-                if (entry.intersectionRatio >= 0.5) {
-                    // Play and ensure muted/playsinline for mobile autoplay
-                    video.muted = true;
-                    video.playsInline = true;
-                    const playPromise = video.play();
+                    // Try play (user clicked to open so should be allowed)
+                    const playPromise = lightboxVideo.play();
                     if (playPromise && typeof playPromise.then === 'function') {
                         playPromise.catch(() => {
-                            // Autoplay blocked: show overlay play icon (already present)
+                            // If play is blocked, don't crash — user can use controls
                         });
                     }
-                } else {
-                    video.pause();
+
+                    // Fallback: if loop isn't honored, restart on ended
+                    lightboxVideo.removeEventListener('ended', lightboxVideo._replayHandler);
+                    lightboxVideo._replayHandler = () => {
+                        try { lightboxVideo.currentTime = 0; lightboxVideo.play(); } catch (e) {}
+                    };
+                    lightboxVideo.addEventListener('ended', lightboxVideo._replayHandler);
                 }
-            });
-        };
+            };
+        }
 
-        const observer = new IntersectionObserver(callback, options);
-        document.querySelectorAll('.grid-item').forEach(item => observer.observe(item));
-    }
+        // Also ensure loadImageToLightbox plays video when navigating
+        const originalLoadImageToLightbox = window.loadImageToLightbox;
+        if (typeof originalLoadImageToLightbox === 'function') {
+            window.loadImageToLightbox = function(gridItem) {
+                originalLoadImageToLightbox(gridItem);
 
-    function setupReelsTouchNavigation(grid) {
-        let startY = 0;
-        let endY = 0;
-
-        grid.addEventListener('touchstart', (e) => {
-            if (e.touches && e.touches.length > 0) startY = e.touches[0].clientY;
-        }, { passive: true });
-
-        grid.addEventListener('touchend', (e) => {
-            endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : 0;
-            const delta = startY - endY;
-            const threshold = 50; // minimal swipe distance
-            if (Math.abs(delta) > threshold) {
-                // Swipe up -> next, Swipe down -> prev
-                if (delta > 0) {
-                    scrollToNext(grid);
-                } else {
-                    scrollToPrev(grid);
+                const lightboxVideo = document.getElementById('lightboxVideo');
+                if (lightboxVideo && lightboxVideo.style.display !== 'none') {
+                    lightboxVideo.loop = true;
+                    lightboxVideo.muted = true;
+                    lightboxVideo.playsInline = true;
+                    const p = lightboxVideo.play();
+                    if (p && typeof p.then === 'function') p.catch(()=>{});
                 }
-            }
-        }, { passive: true });
-    }
-
-    function scrollToNext(grid) {
-        const scrollTop = grid.scrollTop;
-        const vh = window.innerHeight;
-        grid.scrollTo({ top: scrollTop + vh, behavior: 'smooth' });
-    }
-
-    function scrollToPrev(grid) {
-        const scrollTop = grid.scrollTop;
-        const vh = window.innerHeight;
-        grid.scrollTo({ top: Math.max(0, scrollTop - vh), behavior: 'smooth' });
-    }
-
-    // Run reels init after DOM content to check for touch devices
-    document.addEventListener('DOMContentLoaded', () => {
-        // Slight delay to allow lazy elements to be inserted
-        setTimeout(initReelsModeIfNeeded, 300);
-    });
-
-    /* ---------------- Lightbox video playback/loop fixes ---------------- */
-    // Ensure lightbox plays videos and respects loop; fallback to replay on 'ended'
-    const originalOpenLightbox = window.openLightbox;
-    if (typeof originalOpenLightbox === 'function') {
-        window.openLightbox = function (imgElement) {
-            originalOpenLightbox(imgElement);
-
-            // If the lightbox contains a video, try to play it and ensure loop is set
-            const lightboxVideo = document.getElementById('lightboxVideo');
-            if (lightboxVideo && lightboxVideo.style.display !== 'none') {
-                lightboxVideo.loop = true;
-                lightboxVideo.muted = true; // allow autoplay on mobile
-                lightboxVideo.playsInline = true;
-
-                // Try play (user clicked to open so should be allowed)
-                const playPromise = lightboxVideo.play();
-                if (playPromise && typeof playPromise.then === 'function') {
-                    playPromise.catch(() => {
-                        // If play is blocked, don't crash — user can use controls
-                    });
-                }
-
-                // Fallback: if loop isn't honored, restart on ended
-                lightboxVideo.removeEventListener('ended', lightboxVideo._replayHandler);
-                lightboxVideo._replayHandler = () => {
-                    try { lightboxVideo.currentTime = 0; lightboxVideo.play(); } catch (e) { }
-                };
-                lightboxVideo.addEventListener('ended', lightboxVideo._replayHandler);
-            }
-        };
-    }
-
-    // Also ensure loadImageToLightbox plays video when navigating
-    const originalLoadImageToLightbox = window.loadImageToLightbox;
-    if (typeof originalLoadImageToLightbox === 'function') {
-        window.loadImageToLightbox = function (gridItem) {
-            originalLoadImageToLightbox(gridItem);
-
-            const lightboxVideo = document.getElementById('lightboxVideo');
-            if (lightboxVideo && lightboxVideo.style.display !== 'none') {
-                lightboxVideo.loop = true;
-                lightboxVideo.muted = true;
-                lightboxVideo.playsInline = true;
-                const p = lightboxVideo.play();
-                if (p && typeof p.then === 'function') p.catch(() => { });
-            }
-        };
-    }
+            };
+        }
 }
 
 function setupEventListeners() {
