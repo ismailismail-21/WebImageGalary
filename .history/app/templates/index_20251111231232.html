@@ -37,11 +37,11 @@
         <div class="favorites-grid">
             {% for image in favorite_images %}
             <div class="favorite-card grid-item" data-folder="{{ image['folder'] }}"
-                data-filename="{{ image['filename'] }}" data-is-video="false"
-                id="fav-{{ image['folder'] }}-{{ image['filename'] }}" style="cursor: pointer;">
+                data-filename="{{ image['filename'] }}" id="fav-{{ image['folder'] }}-{{ image['filename'] }}"
+                style="cursor: pointer;">
                 <img src="/api/image/{{ image['folder'] }}/{{ image['filename'] }}" alt="{{ image['filename'] }}"
                     class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}"
-                    onclick="openLightbox(this)" style="cursor: pointer;">
+                    onclick="event.stopPropagation(); openLightbox(this)" style="cursor: pointer;">
 
                 <!-- Image Controls (Heart and Delete) -->
                 <div class="image-controls">
@@ -79,7 +79,7 @@
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox">
     <div class="lightbox-container">
-        <img id="lightboxImage" src="" alt="" class="lightbox-image">
+        <img id="lightboxImage" src="" alt="" class="lightbox-image" style="display: block;">
         <video id="lightboxVideo" class="lightbox-image" controls style="display: none;">
             <source src="" type="video/mp4">
             Your browser does not support the video tag.
@@ -90,8 +90,6 @@
         </div>
 
         <div class="lightbox-controls">
-            <button class="lightbox-fullscreen-btn" id="lightboxFullscreenBtn"
-                onclick="event.stopPropagation(); toggleFullscreen()" title="Toggle fullscreen">⛶</button>
             <button class="lightbox-favorite-btn" id="lightboxFavoriteBtn"
                 onclick="event.stopPropagation(); toggleLightboxFavorite()" title="Add to favorites">♡</button>
             <button class="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -233,117 +231,50 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.95);
         z-index: 2000;
-        align-items: center;
         justify-content: center;
+        align-items: center;
     }
 
     .lightbox.active {
         display: flex;
     }
 
-    .lightbox-container {
-        position: relative;
-        width: 90%;
-        height: 90%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .lightbox-image {
-        max-width: 100%;
-        max-height: 100%;
+    #lightboxImage {
+        max-width: 90%;
+        max-height: 90%;
         object-fit: contain;
-        user-select: none;
     }
 
-    .lightbox-info {
+    .lightbox-close {
         position: absolute;
         top: 20px;
-        left: 20px;
+        right: 30px;
         color: white;
-        font-size: 1em;
-        background-color: rgba(0, 0, 0, 0.5);
-        padding: 10px 15px;
-        border-radius: 5px;
-    }
-
-    .lightbox-controls {
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        /* display: flex; */
-        gap: 10px;
-    }
-
-    .lightbox-fullscreen-btn,
-    .lightbox-favorite-btn,
-    .lightbox-close {
-        background-color: rgba(255, 107, 107, 0.9);
-        border: none;
-        color: white;
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
-        border-radius: 50%;
+        font-size: 40px;
+        font-weight: bold;
         cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .lightbox-favorite-btn {
-        background-color: rgba(102, 126, 234, 0.9);
-    }
-
-    .lightbox-fullscreen-btn {
-        background-color: rgba(102, 126, 234, 0.9);
-    }
-
-    .lightbox-favorite-btn.active {
-        background-color: #ff6b6b;
-    }
-
-    .lightbox-fullscreen-btn:hover,
-    .lightbox-favorite-btn:hover,
-    .lightbox-close:hover {
-        transform: scale(1.1);
-    }
-
-    .lightbox-fullscreen-btn:hover {
-        background-color: #667eea;
-    }
-
-    .lightbox-favorite-btn:hover {
-        background-color: #667eea;
+        z-index: 2001;
+        background: none;
+        border: none;
     }
 
     .lightbox-close:hover {
-        background-color: #ff6b6b;
+        color: #ccc;
     }
 
-    .lightbox-nav {
+    .lightbox-prev,
+    .lightbox-next {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        background-color: rgba(255, 255, 255, 0.2);
-        border: none;
         color: white;
-        width: 60px;
-        height: 60px;
-        font-size: 1.5em;
+        font-size: 30px;
+        padding: 10px 15px;
         cursor: pointer;
-        border-radius: 50%;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .lightbox-nav:hover {
-        background-color: rgba(255, 255, 255, 0.4);
-        transform: translateY(-50%) scale(1.1);
+        background-color: rgba(0, 0, 0, 0.5);
+        border: none;
+        border-radius: 5px;
+        z-index: 2001;
     }
 
     .lightbox-prev {
@@ -354,13 +285,22 @@
         right: 20px;
     }
 
-    /* Fullscreen mode - image fills screen maintaining aspect ratio */
-    .lightbox-image.fullscreen-mode {
-        max-width: 100vw !important;
-        max-height: 100vh !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        object-fit: contain !important;
+    .lightbox-prev:hover,
+    .lightbox-next:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 16px;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 20px;
+        z-index: 2001;
     }
 
     @media (max-width: 768px) {
@@ -554,42 +494,6 @@
         max-width: 100px;
         opacity: 1;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Ensure lightbox image displays properly */
-    #lightboxImage {
-        display: block;
-        width: auto;
-        height: auto;
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    /* Make sure lightbox buttons are visible and properly styled */
-    .lightbox-controls {
-        z-index: 2001;
-    }
-
-    .lightbox-nav {
-        z-index: 2001;
-    }
-
-    /* On mobile/touch devices, always show the controls */
-    @media (hover: none) and (pointer: coarse) {
-
-        .favorite-card .image-controls,
-        .favorite-card .tag-circle-btn {
-            opacity: 1 !important;
-        }
-    }
-
-    /* Ensure buttons are clickable when visible */
-    .favorite-card .image-controls {
-        pointer-events: auto;
-    }
-
-    .favorite-card .image-controls button {
-        pointer-events: auto;
     }
 </style>
 
@@ -827,7 +731,106 @@
         }
     }
 
-    // Lightbox functionality is handled by gallery.js
-    // Just need to ensure grid items have the right data attributes
+    // Lightbox functionality for favorites page
+    let currentImageIndex = 0;
+    let favoriteImages = [];
+
+    function openLightbox(imgElement) {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxVideo = document.getElementById('lightboxVideo');
+        
+        // Get all favorite images
+        favoriteImages = Array.from(document.querySelectorAll('.favorite-image-card img'));
+        currentImageIndex = favoriteImages.indexOf(imgElement);
+        
+        // Show the lightbox
+        lightbox.style.display = 'flex';
+        
+        // Load the clicked image
+        loadImageToLightbox(currentImageIndex);
+        
+        document.body.style.overflow = 'hidden';
+    }
+
+    function loadImageToLightbox(index) {
+        if (index < 0 || index >= favoriteImages.length) return;
+        
+        currentImageIndex = index;
+        const img = favoriteImages[index];
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxVideo = document.getElementById('lightboxVideo');
+        const counter = document.getElementById('lightboxCounter');
+        
+        // Reset transforms
+        lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
+        
+        // Show image (favorites page doesn't have videos yet)
+        lightboxVideo.style.display = 'none';
+        lightboxImage.style.display = 'block';
+        lightboxImage.src = img.src;
+        
+        // Update counter
+        counter.textContent = `${index + 1} / ${favoriteImages.length}`;
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxVideo = document.getElementById('lightboxVideo');
+        
+        lightbox.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Pause video if playing
+        if (lightboxVideo && !lightboxVideo.paused) {
+            lightboxVideo.pause();
+        }
+    }
+
+    function prevImage() {
+        if (currentImageIndex > 0) {
+            loadImageToLightbox(currentImageIndex - 1);
+        }
+    }
+
+    function nextImage() {
+        if (currentImageIndex < favoriteImages.length - 1) {
+            loadImageToLightbox(currentImageIndex + 1);
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox.style.display === 'flex') {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                prevImage();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            }
+        }
+    });
+
+    // Mouse wheel navigation (scroll to change images)
+    document.getElementById('lightbox').addEventListener('wheel', (e) => {
+        // Only navigate if not zoomed in (Ctrl/Cmd not pressed)
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                prevImage();
+            } else if (e.deltaY > 0) {
+                nextImage();
+            }
+        }
+    });
+
+    // Close lightbox when clicking outside the image
+    document.getElementById('lightbox').addEventListener('click', (e) => {
+        if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-container')) {
+            closeLightbox();
+        }
+    });
 </script>
 {% endblock %}

@@ -2,7 +2,6 @@
 let currentImageIndex = 0;
 let allImages = [];
 let currentFolderName = '';
-let favoriteImages = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
     currentFolderName = document.querySelector('.breadcrumb-item strong')?.textContent || '';
@@ -184,10 +183,10 @@ function toggleFullscreen() {
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
     const activeElement = lightboxImage.style.display !== 'none' ? lightboxImage : lightboxVideo;
-
+    
     // Toggle the fullscreen class
     activeElement.classList.toggle('fullscreen-mode');
-
+    
     // Update button icon
     const btn = document.getElementById('lightboxFullscreenBtn');
     if (activeElement.classList.contains('fullscreen-mode')) {
@@ -252,14 +251,12 @@ function updateLightboxFavorite() {
     if (!currentImage) return;
 
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
-    if (favoriteBtn) {
-        if (favoriteImages.has(filename)) {
-            favoriteBtn.classList.add('active');
-        } else {
-            favoriteBtn.classList.remove('active');
-        }
+    if (favoriteImages.has(filename)) {
+        favoriteBtn.classList.add('active');
+    } else {
+        favoriteBtn.classList.remove('active');
     }
 }
 

@@ -652,42 +652,4 @@
         return card;
     }
 </script>
-
-<style>
-    /* Ensure lightbox image displays properly */
-    #lightboxImage {
-        display: block;
-        width: auto;
-        height: auto;
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    /* Make sure lightbox buttons are visible and properly styled */
-    .lightbox-controls {
-        z-index: 2001;
-    }
-
-    .lightbox-nav {
-        z-index: 2001;
-    }
-
-    /* On mobile/touch devices, always show the controls */
-    @media (hover: none) and (pointer: coarse) {
-
-        .grid-item .image-controls,
-        .grid-item .tag-circle-btn {
-            opacity: 1 !important;
-        }
-    }
-
-    /* Ensure buttons are clickable when visible */
-    .grid-item .image-controls {
-        pointer-events: auto;
-    }
-
-    .grid-item .image-controls button {
-        pointer-events: auto;
-    }
-</style>
 {% endblock %}

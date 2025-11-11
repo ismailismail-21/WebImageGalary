@@ -252,14 +252,12 @@ function updateLightboxFavorite() {
     if (!currentImage) return;
 
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
-    if (favoriteBtn) {
-        if (favoriteImages.has(filename)) {
-            favoriteBtn.classList.add('active');
-        } else {
-            favoriteBtn.classList.remove('active');
-        }
+    if (favoriteImages.has(filename)) {
+        favoriteBtn.classList.add('active');
+    } else {
+        favoriteBtn.classList.remove('active');
     }
 }
 

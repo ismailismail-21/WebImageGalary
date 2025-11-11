@@ -2,7 +2,6 @@
 let currentImageIndex = 0;
 let allImages = [];
 let currentFolderName = '';
-let favoriteImages = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
     currentFolderName = document.querySelector('.breadcrumb-item strong')?.textContent || '';
@@ -252,14 +251,12 @@ function updateLightboxFavorite() {
     if (!currentImage) return;
 
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
-    if (favoriteBtn) {
-        if (favoriteImages.has(filename)) {
-            favoriteBtn.classList.add('active');
-        } else {
-            favoriteBtn.classList.remove('active');
-        }
+    if (favoriteImages.has(filename)) {
+        favoriteBtn.classList.add('active');
+    } else {
+        favoriteBtn.classList.remove('active');
     }
 }
 
