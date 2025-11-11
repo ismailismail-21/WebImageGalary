@@ -353,22 +353,21 @@ function toggleFullscreen() {
 /* Lightbox touch navigation: horizontal for images, vertical for videos */
 function setupLightboxTouchNavigation() {
     const lightbox = document.getElementById('lightbox');
-    const lightboxVideo = document.getElementById('lightboxVideo');
     if (!lightbox) return;
 
     let startX = 0;
     let startY = 0;
     let isTouching = false;
 
-    const handleTouchStart = (e) => {
+    lightbox.addEventListener('touchstart', (e) => {
         if (e.touches && e.touches.length > 0) {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
             isTouching = true;
         }
-    };
+    }, { passive: true });
 
-    const handleTouchEnd = (e) => {
+    lightbox.addEventListener('touchend', (e) => {
         if (!isTouching) return;
         isTouching = false;
 
@@ -379,6 +378,7 @@ function setupLightboxTouchNavigation() {
         const deltaY = startY - endY;
 
         const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxVideo = document.getElementById('lightboxVideo');
         const isVideo = lightboxVideo && lightboxVideo.style.display !== 'none';
 
         const absX = Math.abs(deltaX);
@@ -392,36 +392,22 @@ function setupLightboxTouchNavigation() {
             // vertical navigation for videos
             if (deltaY > vertThreshold) {
                 // swipe up -> next video
-                e.preventDefault();
                 nextImage();
             } else if (deltaY < -vertThreshold) {
                 // swipe down -> previous video
-                e.preventDefault();
                 prevImage();
             }
         } else {
             // horizontal navigation for images
             if (deltaX > horizThreshold && absX > absY) {
                 // swipe left -> next image
-                e.preventDefault();
                 nextImage();
             } else if (deltaX < -horizThreshold && absX > absY) {
                 // swipe right -> previous image
-                e.preventDefault();
                 prevImage();
             }
         }
-    };
-
-    // Attach to lightbox container
-    lightbox.addEventListener('touchstart', handleTouchStart, { passive: false });
-    lightbox.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-    // Also attach to video element for fullscreen mode
-    if (lightboxVideo) {
-        lightboxVideo.addEventListener('touchstart', handleTouchStart, { passive: false });
-        lightboxVideo.addEventListener('touchend', handleTouchEnd, { passive: false });
-    }
+    }, { passive: true });
 }
 
 // Setup lightbox touch nav on DOM ready
@@ -1016,4 +1002,114 @@ document.addEventListener('DOMContentLoaded', () => {
     if (grid) {
         observer.observe(grid, { childList: true, subtree: true });
     }
+});
+
+/* Fullscreen touch swipe support (handle browser native fullscreen on mobile/iOS) */
+let _fsTouch = {
+    startX: 0,
+    startY: 0,
+    handlerStart: null,
+    handlerEnd: null
+};
+
+function enableFullscreenTouchHandlers(targetEl) {
+    // attach handlers to document to catch touches in fullscreen UI
+    disableFullscreenTouchHandlers();
+
+    _fsTouch.handlerStart = function (e) {
+        if (e.touches && e.touches.length > 0) {
+            _fsTouch.startX = e.touches[0].clientX;
+            _fsTouch.startY = e.touches[0].clientY;
+        }
+    };
+
+    _fsTouch.handlerEnd = function (e) {
+        const endX = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientX : _fsTouch.startX;
+        const endY = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientY : _fsTouch.startY;
+        const deltaX = _fsTouch.startX - endX;
+        const deltaY = _fsTouch.startY - endY;
+
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        const vertThreshold = 40;
+        const horizThreshold = 40;
+
+        // If the fullscreen element is a video (or contains one), prefer vertical swipes
+        const isVideoFS = (targetEl && (targetEl.tagName === 'VIDEO' || targetEl.querySelector && targetEl.querySelector('video')));
+
+        if (isVideoFS && absY > Math.max(absX, vertThreshold)) {
+            if (deltaY > vertThreshold) {
+                // swipe up -> next
+                nextImage();
+            } else if (deltaY < -vertThreshold) {
+                // swipe down -> prev
+                prevImage();
+            }
+        } else if (!isVideoFS && absX > Math.max(absY, horizThreshold)) {
+            if (deltaX > horizThreshold) nextImage();
+            else if (deltaX < -horizThreshold) prevImage();
+        }
+    };
+
+    document.addEventListener('touchstart', _fsTouch.handlerStart, { passive: true });
+    document.addEventListener('touchend', _fsTouch.handlerEnd, { passive: true });
+}
+
+function disableFullscreenTouchHandlers() {
+    if (_fsTouch.handlerStart) document.removeEventListener('touchstart', _fsTouch.handlerStart);
+    if (_fsTouch.handlerEnd) document.removeEventListener('touchend', _fsTouch.handlerEnd);
+    _fsTouch.handlerStart = null;
+    _fsTouch.handlerEnd = null;
+}
+
+function _onFullScreenChange() {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement || null;
+    if (fsEl) {
+        // attach handlers to the fullscreen element (or document)
+        enableFullscreenTouchHandlers(fsEl);
+    } else {
+        disableFullscreenTouchHandlers();
+    }
+}
+
+// Listen for standard and webkit fullscreen change events
+document.addEventListener('fullscreenchange', _onFullScreenChange);
+document.addEventListener('webkitfullscreenchange', _onFullScreenChange);
+
+// iOS Safari also fires webkitbeginfullscreen / webkitendfullscreen on the video element
+function _attachWebkitHandlersToVideos() {
+    document.querySelectorAll('video').forEach(v => {
+        // when video enters native fullscreen on iOS
+        v.addEventListener('webkitbeginfullscreen', (e) => {
+            try {
+                enableFullscreenTouchHandlers(v);
+            } catch (err) { }
+        });
+        v.addEventListener('webkitendfullscreen', (e) => {
+            try {
+                disableFullscreenTouchHandlers();
+            } catch (err) { }
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    _attachWebkitHandlersToVideos();
+    // Re-attach when new videos are added (e.g., lazy load)
+    const mo = new MutationObserver((mutations) => {
+        mutations.forEach(m => {
+            if (m.addedNodes) {
+                m.addedNodes.forEach(n => {
+                    if (n.nodeType === 1 && n.tagName === 'VIDEO') {
+                        _attachWebkitHandlersToVideos();
+                    } else if (n.nodeType === 1 && n.querySelector && n.querySelector('video')) {
+                        _attachWebkitHandlersToVideos();
+                    }
+                });
+            }
+        });
+    });
+    const gridEl = document.getElementById('imagesGrid');
+    if (gridEl) mo.observe(gridEl, { childList: true, subtree: true });
 });

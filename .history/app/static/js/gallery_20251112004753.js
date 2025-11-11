@@ -353,22 +353,21 @@ function toggleFullscreen() {
 /* Lightbox touch navigation: horizontal for images, vertical for videos */
 function setupLightboxTouchNavigation() {
     const lightbox = document.getElementById('lightbox');
-    const lightboxVideo = document.getElementById('lightboxVideo');
     if (!lightbox) return;
 
     let startX = 0;
     let startY = 0;
     let isTouching = false;
 
-    const handleTouchStart = (e) => {
+    lightbox.addEventListener('touchstart', (e) => {
         if (e.touches && e.touches.length > 0) {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
             isTouching = true;
         }
-    };
+    }, { passive: true });
 
-    const handleTouchEnd = (e) => {
+    lightbox.addEventListener('touchend', (e) => {
         if (!isTouching) return;
         isTouching = false;
 
@@ -379,6 +378,7 @@ function setupLightboxTouchNavigation() {
         const deltaY = startY - endY;
 
         const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxVideo = document.getElementById('lightboxVideo');
         const isVideo = lightboxVideo && lightboxVideo.style.display !== 'none';
 
         const absX = Math.abs(deltaX);
@@ -392,36 +392,22 @@ function setupLightboxTouchNavigation() {
             // vertical navigation for videos
             if (deltaY > vertThreshold) {
                 // swipe up -> next video
-                e.preventDefault();
                 nextImage();
             } else if (deltaY < -vertThreshold) {
                 // swipe down -> previous video
-                e.preventDefault();
                 prevImage();
             }
         } else {
             // horizontal navigation for images
             if (deltaX > horizThreshold && absX > absY) {
                 // swipe left -> next image
-                e.preventDefault();
                 nextImage();
             } else if (deltaX < -horizThreshold && absX > absY) {
                 // swipe right -> previous image
-                e.preventDefault();
                 prevImage();
             }
         }
-    };
-
-    // Attach to lightbox container
-    lightbox.addEventListener('touchstart', handleTouchStart, { passive: false });
-    lightbox.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-    // Also attach to video element for fullscreen mode
-    if (lightboxVideo) {
-        lightboxVideo.addEventListener('touchstart', handleTouchStart, { passive: false });
-        lightboxVideo.addEventListener('touchend', handleTouchEnd, { passive: false });
-    }
+    }, { passive: true });
 }
 
 // Setup lightbox touch nav on DOM ready
