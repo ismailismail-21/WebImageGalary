@@ -679,8 +679,8 @@ function loadImageToLightbox(gridItem) {
 
     if (fullscreenBtn) {
         if (isMobile && !isVideo) {
-            // On mobile for images, show button but it will show a message when clicked
-            fullscreenBtn.style.display = 'flex';
+            // Hide fullscreen button on mobile for images (not supported)
+            fullscreenBtn.style.display = 'none';
         } else {
             // Show fullscreen button for videos on mobile or all content on desktop
             fullscreenBtn.style.display = 'flex';
