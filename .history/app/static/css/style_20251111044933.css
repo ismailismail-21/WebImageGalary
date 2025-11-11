@@ -275,26 +275,11 @@ body {
 /* Responsive */
 @media (max-width: 768px) {
     .navbar-container {
-        height: auto;
-        min-height: 60px;
-        flex-wrap: wrap;
-        padding: 10px 15px;
-        gap: 10px;
+        height: 60px;
     }
 
     .navbar-brand a {
         font-size: 1.2em;
-    }
-
-    .folders-dropdown-container {
-        order: 3;
-        flex: 1 1 100%;
-        max-width: 100%;
-    }
-
-    .folder-dropdown {
-        font-size: 0.9em;
-        padding: 6px 30px 6px 12px;
     }
 
     .navbar-menu {

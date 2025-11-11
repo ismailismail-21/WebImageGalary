@@ -9,7 +9,7 @@
         <p>{% if favorite_images %}Your favorite images and categories{% else %}Select a category to browse images{% endif %}</p>
     </div> -->
     <!-- Folders Section -->
-    <!-- <div class="folders-section">
+    <div class="folders-section">
         {% if folders %}
         <div class="folders-dropdown-container">
             <select id="folderSelect" class="folder-dropdown" onchange="navigateToFolder(this.value)">
@@ -29,7 +29,7 @@
             <p>No folders found in the dataset.</p>
         </div>
         {% endif %}
-    </div> -->
+    </div>
     <!-- Favorites Section -->
     {% if favorite_images %}
     <div class="favorites-section">
@@ -152,17 +152,16 @@
 
 
     .folders-section {
-        margin-bottom: 1px;
+        margin-bottom: 30px;
     }
 
-    /* .folders-dropdown-container {
-        padding-top: 10px;
-        margin-top: 20px;
+    .folders-dropdown-container {
+        padding-bottom: 10px;
+        margin-bottom: 20px;
         border-bottom: 3px solid #3498db;
-    } */
+    }
 
     .folder-dropdown {
-/* margin-top: 20px    ; */
         width: 100%;
         max-width: 600px;
         padding: 15px 20px;

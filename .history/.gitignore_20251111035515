@@ -32,7 +32,7 @@ env/
 *.db
 gallery.db
 instance/
-# https://github.com/ismailismail-21/WebImageGalary.git
+
 # IDE
 .vscode/
 .idea/

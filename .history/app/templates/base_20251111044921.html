@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,14 +7,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-
 <body>
     <nav class="navbar">
         <div class="navbar-container">
             <div class="navbar-brand">
                 <a href="/">🖼️ Gallery</a>
             </div>
-
+            
             {% if folders %}
             <div class="folders-dropdown-container">
                 <select id="folderSelect" class="folder-dropdown" onchange="navigateToFolder(this.value)">
@@ -23,25 +21,23 @@
                     {% for folder in folders %}
                     <option value="/folder/{{ folder.path }}">
                         {% if folder.has_subfolders %}📁{% else %}🖼️{% endif %} {{ folder.name }}
-                        {% if folder.has_subfolders %} ({{ folder.subfolder_count }} folder{{ 's' if
-                        folder.subfolder_count > 1 else '' }}){% endif %}
-                        {% if folder.count > 0 %} - {{ folder.count }} image{{ 's' if folder.count > 1 else '' }}{%
-                        endif %}
+                        {% if folder.has_subfolders %} ({{ folder.subfolder_count }} folder{{ 's' if folder.subfolder_count > 1 else '' }}){% endif %}
+                        {% if folder.count > 0 %} - {{ folder.count }} image{{ 's' if folder.count > 1 else '' }}{% endif %}
                     </option>
                     {% endfor %}
                 </select>
             </div>
             {% endif %}
-
+            
             <div class="navbar-menu">
                 <a href="/" class="nav-link">Home</a>
                 <a href="/tags" class="nav-link">🏷️ Tags</a>
             </div>
         </div>
     </nav>
-
+    
     {% block breadcrumb %}{% endblock %}
-
+    
     {% block folders_nav %}{% endblock %}
 
     <main class="container">
@@ -55,5 +51,4 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
-
 </html>

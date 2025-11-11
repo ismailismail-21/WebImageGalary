@@ -227,25 +227,3 @@ def delete_image(dataset_path, folder_name, filename):
 def get_thumbnail_path(filename):
     """Generate thumbnail filename"""
     return f".thumb_{filename}"
-
-def get_subfolders(dataset_path, parent_path):
-    """Get immediate subfolders of a given folder"""
-    return get_all_folders(dataset_path, parent_path)
-
-def get_breadcrumb_path(folder_path):
-    """Convert folder path to breadcrumb list"""
-    if not folder_path:
-        return []
-    
-    parts = folder_path.split(os.sep)
-    breadcrumbs = []
-    current_path = ''
-    
-    for part in parts:
-        current_path = os.path.join(current_path, part) if current_path else part
-        breadcrumbs.append({
-            'name': part,
-            'path': current_path
-        })
-    
-    return breadcrumbs

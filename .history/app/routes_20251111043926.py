@@ -53,8 +53,8 @@ def folder(folder_name):
     if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
         return "Folder not found", 404
     
-    # Get all top-level folders for navigation (first-level only)
-    all_folders = get_all_folders(DATASET_PATH, parent_path='')
+    # Get all top-level folders for navigation
+    all_folders = get_all_folders(DATASET_PATH)
     
     # Get subfolders of current folder
     subfolders = get_subfolders(DATASET_PATH, folder_name)
@@ -93,7 +93,7 @@ def folder(folder_name):
 @main_bp.route('/tags')
 def tags_page():
     """Display all tags and images by tag"""
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     try:
         tags = Tag.query.all()
     except:
@@ -104,7 +104,7 @@ def tags_page():
 @main_bp.route('/tag/<int:tag_id>')
 def tag_detail(tag_id):
     """Display all images with a specific tag"""
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     
     try:
         tag = Tag.query.get(tag_id)

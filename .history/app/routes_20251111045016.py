@@ -104,7 +104,7 @@ def tags_page():
 @main_bp.route('/tag/<int:tag_id>')
 def tag_detail(tag_id):
     """Display all images with a specific tag"""
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     
     try:
         tag = Tag.query.get(tag_id)

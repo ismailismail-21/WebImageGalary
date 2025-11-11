@@ -14,8 +14,7 @@ DATASET_PATH = os.getenv('DATASET_PATH', os.path.join(os.path.dirname(__file__),
 @main_bp.route('/')
 def index():
     """Main gallery page with favorite images"""
-    # Only get first-level folders (parent_path is empty string)
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     try:
         # Get all favorite images with their metadata
         favorites = Favorite.query.all()
@@ -45,22 +44,14 @@ def index():
     
     return render_template('index.html', folders=folders, favorite_images=favorite_images)
 
-@main_bp.route('/folder/<path:folder_name>')
+@main_bp.route('/folder/<folder_name>')
 def folder(folder_name):
-    """Display images from a specific folder and its subfolders"""
-    # Check if folder exists
-    folder_path = os.path.join(DATASET_PATH, folder_name)
-    if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+    """Display images from a specific folder"""
+    folders = get_all_folders(DATASET_PATH)
+    folder_exists = any(f['path'] == folder_name for f in folders)
+    
+    if not folder_exists:
         return "Folder not found", 404
-    
-    # Get all top-level folders for navigation (first-level only)
-    all_folders = get_all_folders(DATASET_PATH, parent_path='')
-    
-    # Get subfolders of current folder
-    subfolders = get_subfolders(DATASET_PATH, folder_name)
-    
-    # Get breadcrumb navigation
-    breadcrumbs = get_breadcrumb_path(folder_name)
     
     page = request.args.get('page', 1, type=int)
     per_page = 100
@@ -84,16 +75,14 @@ def folder(folder_name):
         current_page=page,
         total_pages=total_pages,
         total_images=total,
-        folders=all_folders,
-        subfolders=subfolders,
-        breadcrumbs=breadcrumbs,
+        folders=folders,
         tags=tags
     )
 
 @main_bp.route('/tags')
 def tags_page():
     """Display all tags and images by tag"""
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     try:
         tags = Tag.query.all()
     except:
@@ -104,7 +93,7 @@ def tags_page():
 @main_bp.route('/tag/<int:tag_id>')
 def tag_detail(tag_id):
     """Display all images with a specific tag"""
-    folders = get_all_folders(DATASET_PATH, parent_path='')
+    folders = get_all_folders(DATASET_PATH)
     
     try:
         tag = Tag.query.get(tag_id)

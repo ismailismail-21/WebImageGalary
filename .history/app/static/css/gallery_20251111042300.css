@@ -157,7 +157,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+    background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
     padding: 40px 10px 10px 10px;
     display: flex;
     gap: 8px;
@@ -258,7 +258,7 @@
     left: 8px;
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     z-index: 100;
     min-width: 180px;
     max-width: 250px;
@@ -308,7 +308,7 @@
     flex-wrap: wrap;
     gap: 4px;
     padding: 8px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
     justify-content: center;
     align-items: center;
     min-height: 30px;
@@ -326,7 +326,7 @@
     overflow: hidden;
     max-width: 100px;
     opacity: 1;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 /* Tag Modal */
@@ -674,19 +674,6 @@
     .tag-btn {
         padding: 6px 8px;
         font-size: 0.75em;
-    }
-
-    .subfolders-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
-    }
-
-    .subfolder-card {
-        padding: 15px;
-    }
-
-    .subfolder-icon {
-        font-size: 2.5em;
     }
 
     .lightbox-nav {
@@ -1084,7 +1071,6 @@
         transform: translateX(100%);
         opacity: 0;
     }
-
     to {
         transform: translateX(0);
         opacity: 1;
@@ -1096,7 +1082,6 @@
         transform: translateX(0);
         opacity: 1;
     }
-
     to {
         transform: translateX(100%);
         opacity: 0;
