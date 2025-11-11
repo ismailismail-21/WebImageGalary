@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Tags{% endblock %}
+
+{% block content %}
+<div class="tags-container">
+    <h1>Manage Tags</h1>
+    
+    <div class="tags-content">
+        <!-- Create New Tag Section -->
+        <div class="create-tag-section">
+            <h2>Create New Tag</h2>
+            <form id="createTagForm">
+                <div class="form-group">
+                    <label for="tagName">Tag Name:</label>
+                    <input type="text" id="tagName" placeholder="Enter tag name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tagColor">Tag Color:</label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="tagColor" value="#3498db">
+                        <span class="color-value">#3498db</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create Tag</button>
+            </form>
+        </div>
+        
+        <!-- Existing Tags Section -->
+        <div class="existing-tags-section">
+            <h2>Existing Tags</h2>
+            <div id="tagsList" class="tags-list">
+                <p>Loading tags...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tags-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.tags-container h1 {
+    margin-bottom: 30px;
+    font-size: 28px;
+    color: #333;
+}
+
+.tags-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+@media (max-width: 768px) {
+    .tags-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+}
+
+.create-tag-section h2,
+.existing-tags-section h2 {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+}
+
+.color-picker-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-group input[type="color"] {
+    width: 60px;
+    height: 40px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.color-value {
+    font-family: monospace;
+    color: #888;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.tags-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+}
+
+.tag-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.tag-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    cursor: pointer;
+}
+
+.tag-color-preview {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.tag-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.tag-count {
+    color: #888;
+    font-size: 12px;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-delete {
+    padding: 6px 12px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-delete:hover {
+    background-color: #c0392b;
+}
+
+.tags-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-style: italic;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Load existing tags
+    loadTags();
+    
+    // Setup form
+    const form = document.getElementById('createTagForm');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            createTag();
+        });
+    }
+    
+    // Update color display
+    const colorInput = document.getElementById('tagColor');
+    const colorValue = document.querySelector('.color-value');
+    if (colorInput && colorValue) {
+        colorInput.addEventListener('change', (e) => {
+            colorValue.textContent = e.target.value;
+        });
+    }
+});
+
+function loadTags() {
+    fetch('/api/tags')
+        .then(r => r.json())
+        .then(tags => {
+            const tagsList = document.getElementById('tagsList');
+            if (!tagsList) return;
+            
+            if (tags.length === 0) {
+                tagsList.innerHTML = '<div class="tags-empty">No tags created yet. Create your first tag above!</div>';
+            } else {
+                tagsList.innerHTML = tags
+                    .map(tag => `
+                        <div class="tag-item" style="border-left-color: ${tag.color}">
+                            <a href="/tag/${tag.id}" class="tag-info" style="text-decoration: none; color: inherit; flex: 1;">
+                                <div class="tag-color-preview" style="background-color: ${tag.color}"></div>
+                                <div>
+                                    <div class="tag-name">${escapeHtml(tag.name)}</div>
+                                    <div class="tag-count">${tag.image_count || 0} image(s)</div>
+                                </div>
+                            </a>
+                            <div class="tag-actions">
+                                <button class="btn-delete" onclick="deleteTag(${tag.id})">Delete</button>
+                            </div>
+                        </div>
+                    `)
+                    .join('');
+            }
+        })
+        .catch(err => {
+            console.error('Error loading tags:', err);
+            document.getElementById('tagsList').innerHTML = '<p>Error loading tags</p>';
+        });
+}
+
+function createTag() {
+    const tagName = document.getElementById('tagName').value.trim();
+    const tagColor = document.getElementById('tagColor').value;
+    
+    if (!tagName) {
+        alert('Please enter a tag name');
+        return;
+    }
+    
+    fetch('/api/tags', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: tagName,
+            color: tagColor
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('tagName').value = '';
+            document.getElementById('tagColor').value = '#3498db';
+            document.querySelector('.color-value').textContent = '#3498db';
+            loadTags();
+            showNotification('Tag created successfully', 'success');
+        } else {
+            showNotification(data.message || 'Error creating tag', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error creating tag:', err);
+        showNotification('Error creating tag', 'error');
+    });
+}
+
+function deleteTag(tagId) {
+    if (!confirm('Delete this tag? Images with this tag will not be affected.')) {
+        return;
+    }
+    
+    fetch(`/api/tags/${tagId}`, {
+        method: 'DELETE'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            loadTags();
+            showNotification('Tag deleted successfully', 'success');
+        } else {
+            showNotification(data.message || 'Error deleting tag', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error deleting tag:', err);
+        showNotification('Error deleting tag', 'error');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        border-radius: 5px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 3000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

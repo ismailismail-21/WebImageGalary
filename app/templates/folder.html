@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Gallery - {{ folder_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+{% endblock %}
+
+{% block folders_nav %}
+<!-- Folders Navigation Bar -->
+<div class="folders-nav">
+    <div class="folders-nav-container">
+        <div class="folders-nav-list">
+            {% for folder in folders %}
+            <a href="/folder/{{ folder.path }}" class="folder-nav-link {% if folder.path == folder_name %}active{% endif %}">
+                {{ folder.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block breadcrumb %}
+<!-- Breadcrumb Navigation with Hide Tags Button -->
+<div class="breadcrumb-nav">
+    <span class="breadcrumb-item"><a href="/">Home</a></span>
+    <span class="breadcrumb-item">/</span>
+    <span class="breadcrumb-item"><a href="/folder/{{ folder_name }}">{{ folder_name }}</a></span>
+    <button id="hideTagsBtn" class="hide-tags-btn" onclick="toggleAllTags()" title="Hide/Show tags">Hide Tags</button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Folder Header -->
+<div class="folder-header">
+    <div class="header-content">
+        <a href="/" class="back-link">← Back to Folders</a>
+        <h1>{{ folder_name }}</h1>
+        <p class="image-count">{{ total_images }} images</p>
+    </div>
+</div>
+
+<!-- Gallery Container -->
+<div class="gallery-container" id="galleryContainer">
+    <div class="images-grid" id="imagesGrid">
+        {% for image in images %}
+        <div class="grid-item" 
+             data-filename="{{ image.filename }}" 
+             data-folder="{{ folder_name }}"
+             style="width: {{ image.get('calc_width', 200) }}px; height: {{ image.get('calc_height', 200) }}px;">
+            
+            <img src="/api/image/{{ folder_name }}/{{ image.filename }}" 
+                 alt="{{ image.filename }}"
+                 class="gallery-image"
+                 data-width="{{ image.width }}"
+                 data-height="{{ image.height }}"
+                 onclick="openLightbox(this)">
+            
+            <!-- Image Controls (Heart and Delete) -->
+            <div class="image-controls">
+                <button class="heart-btn" 
+                        onclick="event.stopPropagation(); toggleImageFavorite('{{ folder_name }}', '{{ image.filename }}', this)" 
+                        title="Add to favorites">♡</button>
+                <button class="delete-btn" 
+                        onclick="event.stopPropagation(); deleteImage('{{ folder_name }}', '{{ image.filename }}', this)" 
+                        title="Delete image">🗑️</button>
+            </div>
+            
+            <!-- Tag Dropdown Inline -->
+            <div class="tag-dropdown" id="tag-dropdown-{{ image.filename }}" style="display: none;">
+                <div class="tag-dropdown-content" id="tag-list-{{ image.filename }}">
+                    <!-- Tags will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Tag Circle Button -->
+            <button class="tag-circle-btn" 
+                    onclick="event.stopPropagation(); toggleTagDropdown('{{ folder_name }}', '{{ image.filename }}')" 
+                    title="Manage tags">+</button>
+            
+            <!-- Image Tags Display -->
+            <div class="image-tags" id="tags-{{ image.filename }}"></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if current_page > 1 %}
+    <a href="?page=1" class="page-btn">« First</a>
+    <a href="?page={{ current_page - 1 }}" class="page-btn">‹ Previous</a>
+    {% endif %}
+
+    <div class="page-numbers">
+        {% set start_page = [1, current_page - 2] | max %}
+        {% set end_page = [total_pages, current_page + 2] | min %}
+        
+        {% if start_page > 1 %}<span class="page-dots">...</span>{% endif %}
+        
+        {% for page_num in range(start_page, end_page + 1) %}
+            {% if page_num == current_page %}
+            <span class="page-num current">{{ page_num }}</span>
+            {% else %}
+            <a href="?page={{ page_num }}" class="page-num">{{ page_num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if end_page < total_pages %}<span class="page-dots">...</span>{% endif %}
+    </div>
+
+    {% if current_page < total_pages %}
+    <a href="?page={{ current_page + 1 }}" class="page-btn">Next ›</a>
+    <a href="?page={{ total_pages }}" class="page-btn">Last »</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox">
+    <div class="lightbox-container">
+        <img id="lightboxImage" src="" alt="" class="lightbox-image">
+        
+        <div class="lightbox-info">
+            <span id="lightboxCounter">1 / 1</span>
+        </div>
+        
+        <div class="lightbox-controls">
+            <button class="lightbox-favorite-btn" id="lightboxFavoriteBtn" 
+                    onclick="event.stopPropagation(); toggleLightboxFavorite()" 
+                    title="Add to favorites">♡</button>
+            <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        </div>
+        
+        <button class="lightbox-nav lightbox-prev" onclick="prevImage()">‹</button>
+        <button class="lightbox-nav lightbox-next" onclick="nextImage()">›</button>
+    </div>
+</div>
+
+<!-- Tag Modal -->
+<div id="tagModal" class="tag-modal">
+    <div class="tag-modal-content">
+        <div class="tag-modal-header">
+            <h2>Manage Tags</h2>
+            <button class="tag-modal-close" onclick="closeTagModal()">✕</button>
+        </div>
+        
+        <div class="tag-modal-body">
+            <!-- Existing Tags -->
+            <div class="tag-section">
+                <h3>Available Tags</h3>
+                <div id="existingTags"></div>
+            </div>
+            
+            <!-- Create New Tag -->
+            <div class="new-tag-form">
+                <h3>Create New Tag</h3>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="newTagInput" placeholder="Tag name" style="flex: 1; padding: 8px;" />
+                    <input type="color" id="newTagColor" value="#3498db" style="width: 50px;" />
+                    <button onclick="createNewTag()" style="padding: 8px 16px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+<script>
+    // Initialize gallery data
+    const folderName = '{{ folder_name }}';
+    let allTags = {{ tags | tojson }};
+    let tagsVisible = true;
+    
+    // Load tags and favorites for all images
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTagsAndFavorites();
+    });
+    
+    function loadTagsAndFavorites() {
+        // Load all images
+        const images = document.querySelectorAll('.grid-item');
+        images.forEach(item => {
+            const folder = item.dataset.folder;
+            const filename = item.dataset.filename;
+            
+            // Load tags for this image
+            loadImageTags(folder, filename);
+            
+            // Check if favorited
+            checkImageFavorite(folder, filename);
+        });
+    }
+    
+    function loadImageTags(folder, filename) {
+        fetch(`/api/image-tags/${folder}/${filename}`)
+            .then(r => r.json())
+            .then(imageTags => {
+                const tagsContainer = document.getElementById(`tags-${filename}`);
+                if (tagsContainer && imageTags && imageTags.length > 0) {
+                    const tagHtml = imageTags
+                        .map(it => `<span class="tag-badge" style="background-color: ${it.tag.color}">${it.tag.name}</span>`)
+                        .join('');
+                    tagsContainer.innerHTML = tagHtml;
+                } else if (tagsContainer) {
+                    tagsContainer.innerHTML = '';
+                }
+            })
+            .catch(err => console.error('Error loading tags:', err));
+    }
+    
+    function checkImageFavorite(folder, filename) {
+        fetch(`/api/favorite/${folder}/${filename}`)
+            .then(r => r.json())
+            .then(data => {
+                const gridItem = document.querySelector(`[data-folder="${folder}"][data-filename="${filename}"]`);
+                const heartBtn = gridItem?.querySelector('.heart-btn');
+                if (heartBtn && data.is_favorite) {
+                    heartBtn.classList.add('active');
+                    heartBtn.textContent = '♥';
+                }
+            })
+            .catch(err => console.error('Error checking favorite:', err));
+    }
+    
+    function toggleAllTags() {
+        tagsVisible = !tagsVisible;
+        const tagsElements = document.querySelectorAll('.image-tags');
+        const btn = document.getElementById('hideTagsBtn');
+        
+        tagsElements.forEach(el => {
+            el.style.display = tagsVisible ? 'flex' : 'none';
+        });
+        
+        btn.textContent = tagsVisible ? 'Hide Tags' : 'Show Tags';
+    }
+    
+    // Toggle tag dropdown for an image
+    function toggleTagDropdown(folder, filename) {
+        const dropdown = document.getElementById(`tag-dropdown-${filename}`);
+        const tagList = document.getElementById(`tag-list-${filename}`);
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.tag-dropdown').forEach(d => {
+            if (d.id !== `tag-dropdown-${filename}`) {
+                d.style.display = 'none';
+            }
+        });
+        
+        if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+            // Load tags and show dropdown
+            loadTagsForDropdown(folder, filename);
+            dropdown.style.display = 'block';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+    
+    // Load tags into dropdown
+    function loadTagsForDropdown(folder, filename) {
+        const tagList = document.getElementById(`tag-list-${filename}`);
+        if (!tagList) return;
+        
+        // Fetch all tags
+        fetch('/api/tags')
+            .then(r => r.json())
+            .then(allTags => {
+                if (allTags.length === 0) {
+                    tagList.innerHTML = '<div style="padding: 12px; color: #999; text-align: center; font-size: 0.85em;">No tags available<br><a href="/tags" style="color: #667eea;">Create tags</a></div>';
+                    return;
+                }
+                
+                // Fetch current image tags
+                fetch(`/api/image-tags/${folder}/${filename}`)
+                    .then(r => r.json())
+                    .then(imageTags => {
+                        // imageTags is an array of ImageTag objects with nested tag objects
+                        const currentTagIds = imageTags.map(it => it.tag_id);
+                        
+                        console.log('Image tags for', filename, ':', imageTags);
+                        console.log('Current tag IDs:', currentTagIds);
+                        
+                        const tagHtml = allTags.map(tag => {
+                            const isActive = currentTagIds.includes(tag.id);
+                            console.log(`Tag ${tag.name} (id: ${tag.id}): isActive = ${isActive}`);
+                            return `
+                                <div class="tag-dropdown-item ${isActive ? 'active' : ''}" 
+                                     style="border-left-color: ${tag.color}"
+                                     onclick="toggleTagForImage('${folder}', '${filename}', ${tag.id}, this)">
+                                    <input type="checkbox" 
+                                           class="tag-dropdown-checkbox" 
+                                           ${isActive ? 'checked' : ''}
+                                           onclick="event.stopPropagation();">
+                                    <span>${tag.name}</span>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        tagList.innerHTML = tagHtml;
+                    });
+            })
+            .catch(err => {
+                console.error('Error loading tags:', err);
+                tagList.innerHTML = '<div style="padding: 12px; color: #e74c3c;">Error loading tags</div>';
+            });
+    }
+    
+    // Toggle tag assignment for image
+    function toggleTagForImage(folder, filename, tagId, element) {
+        const checkbox = element.querySelector('.tag-dropdown-checkbox');
+        const isCurrentlyActive = checkbox.checked;
+        
+        // Toggle checkbox immediately for instant feedback
+        checkbox.checked = !isCurrentlyActive;
+        
+        // Call API
+        const method = isCurrentlyActive ? 'DELETE' : 'POST';
+        fetch(`/api/image-tag/${folder}/${filename}/${tagId}`, {
+            method: method
+        })
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            console.log('Tag toggle response:', data);
+            if (data.success) {
+                // Update UI classes
+                if (isCurrentlyActive) {
+                    element.classList.remove('active');
+                } else {
+                    element.classList.add('active');
+                }
+                
+                // Force reload tags display for this image with a small delay
+                setTimeout(() => {
+                    loadImageTags(folder, filename);
+                }, 100);
+            } else {
+                // Revert checkbox on error
+                checkbox.checked = isCurrentlyActive;
+                console.error('Tag toggle failed:', data.message);
+                showNotification('Error: ' + (data.message || 'Failed to update tag'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error toggling tag:', err);
+            // Revert checkbox on error
+            checkbox.checked = isCurrentlyActive;
+            showNotification('Error updating tag', 'error');
+        });
+    }
+    
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.tag-circle-btn') && !e.target.closest('.tag-dropdown')) {
+            document.querySelectorAll('.tag-dropdown').forEach(d => {
+                d.style.display = 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

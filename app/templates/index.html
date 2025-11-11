@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}Gallery - Home{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <!-- <div class="home-header">
+        <h1>📸 Image Gallery</h1>
+        <p>{% if favorite_images %}Your favorite images and categories{% else %}Select a category to browse images{% endif %}</p>
+    </div> -->
+ <!-- Folders Section -->
+    <div class="folders-section">
+        <!-- <h2>📁 Folders</h2> -->
+        {% if folders %}
+        <div class="folders-list">
+            {% for folder in folders %}
+            <a href="/folder/{{ folder.path }}" class="folder-link">
+                <span class="folder-name">{{ folder.name }}</span>
+                <span class="folder-count">{{ folder.count }} images</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-content">
+            <p>No folders found in the dataset.</p>
+        </div>
+        {% endif %}
+    </div>
+    <!-- Favorites Section -->
+    {% if favorite_images %}
+    <div class="favorites-section">
+        <h2>❤️ Favorites</h2>
+        <div class="favorites-grid">
+            {% for image in favorite_images %}
+            <div class="favorite-card grid-item" 
+                 data-folder="{{ image['folder'] }}" 
+                 data-filename="{{ image['filename'] }}"
+                 id="fav-{{ image['folder'] }}-{{ image['filename'] }}"
+                 style="cursor: pointer;">
+                <img src="/api/image/{{ image['folder'] }}/{{ image['filename'] }}" 
+                     alt="{{ image['filename'] }}"
+                     class="gallery-image"
+                     data-width="{{ image.width }}"
+                     data-height="{{ image.height }}"
+                     onclick="event.stopPropagation(); openLightbox(this)"
+                     style="cursor: pointer;">
+                
+                <!-- Image Controls (Heart and Delete) -->
+                <div class="image-controls">
+                    <button class="heart-btn active" 
+                            onclick="event.stopPropagation(); toggleImageFavorite('{{ image['folder'] }}', '{{ image['filename'] }}', this)" 
+                            title="Remove from favorites">♥</button>
+                    <button class="delete-btn" 
+                            onclick="event.stopPropagation(); deleteImage('{{ image['folder'] }}', '{{ image['filename'] }}', this)" 
+                            title="Delete image">🗑️</button>
+                </div>
+                
+                <!-- Tag Dropdown Inline -->
+                <div class="tag-dropdown" id="tag-dropdown-{{ image['filename'] }}" style="display: none;">
+                    <div class="tag-dropdown-content" id="tag-list-{{ image['filename'] }}">
+                        <!-- Tags will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Tag Circle Button -->
+                <button class="tag-circle-btn" 
+                        onclick="event.stopPropagation(); toggleTagDropdown('{{ image['folder'] }}', '{{ image['filename'] }}')" 
+                        title="Manage tags">+</button>
+                
+                <!-- Image Tags Display -->
+                <div class="image-tags" id="tags-{{ image['filename'] }}"></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+   
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close" onclick="closeLightbox()">✕</span>
+    <button class="lightbox-prev" onclick="changeImage(-1)">❮</button>
+    <button class="lightbox-next" onclick="changeImage(1)">❯</button>
+    <img id="lightboxImage" src="" alt="Full screen image">
+    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+</div>
+
+<style>
+    .home-container {
+        max-width: 1400px;
+        margin: 0 ;
+        padding: 1px 1px;
+    }
+
+    .home-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+    .home-header h1 {
+        font-size: 2.5em;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .home-header p {
+        font-size: 1.1em;
+        color: #666;
+    }
+
+    .favorites-section {
+        margin-bottom: 60px;
+    }
+
+    .favorites-section h2 {
+        font-size: 1.5em;
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid #e74c3c;
+    }
+
+    .favorites-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .favorite-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        aspect-ratio: 1;
+    }
+
+    .favorite-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .favorite-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+
+
+    .folders-section h2 {
+        font-size: 1.5em;
+        color: #333;
+       
+       
+        border-bottom: 3px solid #3498db;
+    }
+
+    .folders-list {
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+         padding-bottom: 10px;
+          margin-bottom: 20px;
+         border-bottom: 3px solid #3498db;
+    }
+
+    .folder-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #667eea;
+    }
+
+    .folder-link:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        background-color: #f8f9ff;
+    }
+
+    .folder-name {
+        font-size: 1.1em;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .folder-count {
+        font-size: 0.9em;
+        color: #999;
+        background-color: #f0f0f0;
+        padding: 4px 12px;
+        border-radius: 12px;
+    }
+
+    .folder-link:hover .folder-name {
+        color: #667eea;
+    }
+
+    .no-content {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    /* Lightbox */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    #lightboxImage {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 2001;
+        background: none;
+        border: none;
+    }
+
+    .lightbox-close:hover {
+        color: #ccc;
+    }
+
+    .lightbox-prev,
+    .lightbox-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 30px;
+        padding: 10px 15px;
+        cursor: pointer;
+        background-color: rgba(0, 0, 0, 0.5);
+        border: none;
+        border-radius: 5px;
+        z-index: 2001;
+    }
+
+    .lightbox-prev {
+        left: 20px;
+    }
+
+    .lightbox-next {
+        right: 20px;
+    }
+
+    .lightbox-prev:hover,
+    .lightbox-next:hover {
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-counter {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 16px;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 20px;
+        z-index: 2001;
+    }
+
+    @media (max-width: 768px) {
+        .home-header h1 {
+            font-size: 2em;
+        }
+
+        .favorites-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .folder-link {
+            padding: 12px 15px;
+        }
+
+        .folder-name {
+            font-size: 1em;
+        }
+
+        .folder-count {
+            font-size: 0.85em;
+        }
+    }
+
+    /* Gallery Controls for Favorite Images */
+    .favorite-card {
+        position: relative;
+    }
+
+    .favorite-card .image-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+        padding: 40px 10px 10px 10px;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        align-items: flex-end;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .favorite-card:hover .image-controls {
+        opacity: 1;
+    }
+
+    .favorite-card .heart-btn,
+    .favorite-card .delete-btn {
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 18px;
+        color: white;
+        margin-bottom: 5px;
+    }
+
+    .favorite-card .heart-btn {
+        background-color: rgba(255, 107, 107, 0.95);
+    }
+
+    .favorite-card .heart-btn:hover {
+        background-color: #ff6b6b;
+        transform: scale(1.1);
+    }
+
+    .favorite-card .heart-btn.active {
+        background-color: #e74c3c;
+        font-weight: bold;
+    }
+
+    .favorite-card .delete-btn {
+        background-color: rgba(52, 73, 94, 0.95);
+        font-size: 16px;
+    }
+
+    .favorite-card .delete-btn:hover {
+        background-color: #2c3e50;
+        transform: scale(1.1);
+    }
+
+    .favorite-card .tag-circle-btn {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(102, 126, 234, 0.95);
+        color: white;
+        border: 2px solid white;
+        border-radius: 50%;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        opacity: 0;
+    }
+
+    .favorite-card:hover .tag-circle-btn {
+        opacity: 1;
+    }
+
+    .favorite-card .tag-circle-btn:hover {
+        background-color: #667eea;
+        transform: scale(1.15);
+    }
+
+    .favorite-card .tag-dropdown {
+        position: absolute;
+        bottom: 45px;
+        left: 8px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 100;
+        min-width: 180px;
+        max-width: 250px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .favorite-card .tag-dropdown-content {
+        padding: 8px;
+    }
+
+    .favorite-card .tag-dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        border-left: 4px solid;
+        margin-bottom: 4px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.2s ease;
+        background-color: #f9f9f9;
+    }
+
+    .favorite-card .tag-dropdown-item:hover {
+        background-color: #e8e8e8;
+    }
+
+    .favorite-card .tag-dropdown-item.active {
+        background-color: #e3f2fd;
+        font-weight: 500;
+    }
+
+    .favorite-card .tag-dropdown-checkbox {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .favorite-card .image-tags {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px;
+        background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+        justify-content: center;
+        align-items: center;
+        min-height: 30px;
+        pointer-events: none;
+    }
+
+    .favorite-card .tag-badge {
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 100px;
+        opacity: 1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+</style>
+
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+<script>
+    // Load tags for each favorite image on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.favorite-card').forEach(card => {
+            const folder = card.dataset.folder;
+            const filename = card.dataset.filename;
+            loadImageTags(folder, filename);
+        });
+    });
+
+    // Toggle image favorite status
+    function toggleImageFavorite(folder, filename, button) {
+        const isFavorite = button.classList.contains('active');
+        const method = isFavorite ? 'DELETE' : 'POST';
+        
+        fetch(`/api/favorite/${folder}/${filename}`, {
+            method: method
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                if (isFavorite) {
+                    button.classList.remove('active');
+                    button.textContent = '♡';
+                    button.title = 'Add to favorites';
+                    
+                    // If on favorites page, remove the card with animation
+                    if (window.location.pathname === '/') {
+                        const card = button.closest('.favorite-card');
+                        if (card) {
+                            card.style.transition = 'opacity 0.3s ease';
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.remove();
+                                // Check if favorites section is empty
+                                const remainingCards = document.querySelectorAll('.favorite-card');
+                                if (remainingCards.length === 0) {
+                                    document.querySelector('.favorites-section').remove();
+                                }
+                            }, 300);
+                        }
+                    }
+                } else {
+                    button.classList.add('active');
+                    button.textContent = '♥';
+                    button.title = 'Remove from favorites';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error toggling favorite:', err);
+            showNotification('Error updating favorite', 'error');
+        });
+    }
+
+    // Delete image
+    function deleteImage(folder, filename, button) {
+        if (!confirm('Are you sure you want to delete this image?')) {
+            return;
+        }
+        
+        fetch(`/api/delete/${folder}/${filename}`, {
+            method: 'DELETE'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const card = button.closest('.favorite-card');
+                if (card) {
+                    card.style.transition = 'opacity 0.3s ease';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        card.remove();
+                        const remainingCards = document.querySelectorAll('.favorite-card');
+                        if (remainingCards.length === 0) {
+                            document.querySelector('.favorites-section').remove();
+                        }
+                    }, 300);
+                }
+                showNotification('Image deleted successfully', 'success');
+            } else {
+                showNotification('Error deleting image: ' + (data.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error deleting image:', err);
+            showNotification('Error deleting image', 'error');
+        });
+    }
+
+    // Toggle tag dropdown
+    function toggleTagDropdown(folder, filename) {
+        const dropdown = document.getElementById('tag-dropdown-' + filename);
+        const isVisible = dropdown.style.display === 'block';
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.tag-dropdown').forEach(d => {
+            d.style.display = 'none';
+        });
+        
+        if (!isVisible) {
+            dropdown.style.display = 'block';
+            loadTagsForDropdown(folder, filename);
+        }
+    }
+
+    // Load tags for dropdown
+    function loadTagsForDropdown(folder, filename) {
+        Promise.all([
+            fetch('/api/tags').then(r => r.json()),
+            fetch(`/api/image-tags/${folder}/${filename}`).then(r => r.json())
+        ])
+        .then(([allTags, imageTags]) => {
+            const currentTagIds = imageTags.map(it => it.tag_id);
+            const tagList = document.getElementById('tag-list-' + filename);
+            
+            tagList.innerHTML = allTags.map(tag => `
+                <div class="tag-dropdown-item ${currentTagIds.includes(tag.id) ? 'active' : ''}"
+                     style="border-left-color: ${tag.color}"
+                     onclick="toggleTagForImage('${folder}', '${filename}', ${tag.id}, this)">
+                    <input type="checkbox" 
+                           class="tag-dropdown-checkbox" 
+                           ${currentTagIds.includes(tag.id) ? 'checked' : ''}>
+                    <span>${tag.name}</span>
+                </div>
+            `).join('');
+        })
+        .catch(err => {
+            console.error('Error loading tags:', err);
+        });
+    }
+
+    // Toggle tag for image
+    function toggleTagForImage(folder, filename, tagId, element) {
+        const checkbox = element.querySelector('.tag-dropdown-checkbox');
+        const isCurrentlyActive = checkbox.checked;
+        
+        checkbox.checked = !isCurrentlyActive;
+        
+        const method = isCurrentlyActive ? 'DELETE' : 'POST';
+        fetch(`/api/image-tag/${folder}/${filename}/${tagId}`, {
+            method: method
+        })
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (data.success) {
+                if (isCurrentlyActive) {
+                    element.classList.remove('active');
+                } else {
+                    element.classList.add('active');
+                }
+                
+                setTimeout(() => {
+                    loadImageTags(folder, filename);
+                }, 100);
+            } else {
+                checkbox.checked = isCurrentlyActive;
+                console.error('Tag toggle failed:', data.message);
+                showNotification('Error: ' + (data.message || 'Failed to update tag'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error toggling tag:', err);
+            checkbox.checked = isCurrentlyActive;
+            showNotification('Error updating tag', 'error');
+        });
+    }
+
+    // Load image tags
+    function loadImageTags(folder, filename) {
+        fetch(`/api/image-tags/${folder}/${filename}`)
+        .then(r => r.json())
+        .then(imageTags => {
+            const tagsContainer = document.getElementById('tags-' + filename);
+            if (tagsContainer) {
+                if (imageTags.length === 0) {
+                    tagsContainer.innerHTML = '';
+                } else {
+                    tagsContainer.innerHTML = imageTags.map(it => 
+                        `<span class="tag-badge" style="background-color: ${it.tag.color}">${it.tag.name}</span>`
+                    ).join('');
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error loading image tags:', err);
+        });
+    }
+
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.tag-circle-btn') && !e.target.closest('.tag-dropdown')) {
+            document.querySelectorAll('.tag-dropdown').forEach(d => {
+                d.style.display = 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

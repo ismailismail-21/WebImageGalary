@@ -1,0 +1,633 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tag.name }} - Gallery{% endblock %}
+
+{% block content %}
+<div class="tag-gallery-container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb-nav">
+        <a href="/">Home</a>
+        <span class="breadcrumb-separator">/</span>
+        <a href="/tags">Tags</a>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-item" style="border-left: 4px solid {{ tag.color }}; padding-left: 8px;">{{ tag.name }}</span>
+    </nav>
+    
+    <!-- Images Grid -->
+    <div class="images-grid" id="imagesGrid" style="gap: 8px;">
+        {% if images %}
+            {% for image in images %}
+            <div class="grid-item" 
+                 data-folder="{{ image['folder'] }}" 
+                 data-filename="{{ image['filename'] }}"
+                 style="width: {{ image.get('calc_width', 200) }}px; height: {{ image.get('calc_height', 200) }}px;">
+                <img src="/api/image/{{ image['folder'] }}/{{ image['filename'] }}" 
+                     alt="{{ image['filename'] }}" 
+                     class="gallery-image" 
+                     onclick="openLightbox(this)">
+                
+                <div class="image-controls">
+                    <button class="heart-btn" 
+                            onclick="event.stopPropagation(); toggleImageFavorite('{{ image['folder'] }}', '{{ image['filename'] }}', this)" 
+                            title="Add to favorites">♡</button>
+                    <button class="delete-btn" 
+                            onclick="event.stopPropagation(); deleteImage('{{ image['folder'] }}', '{{ image['filename'] }}', this)" 
+                            title="Delete image">🗑️</button>
+                </div>
+                
+                <!-- Tag Dropdown Inline -->
+                <div class="tag-dropdown" id="tag-dropdown-{{ image['filename'] }}" style="display: none;">
+                    <div class="tag-dropdown-content" id="tag-list-{{ image['filename'] }}">
+                        <!-- Tags will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Tag Circle Button -->
+                <button class="tag-circle-btn" 
+                        onclick="event.stopPropagation(); toggleTagDropdown('{{ image['folder'] }}', '{{ image['filename'] }}')" 
+                        title="Manage tags">+</button>
+                
+                <!-- Image Tags Display -->
+                <div class="image-tags" id="tags-{{ image['filename'] }}"></div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="no-images">No images found with this tag.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox">
+    <img id="lightboxImage" src="" alt="Full screen image">
+    <div class="lightbox-controls">
+        <button class="lightbox-favorite" title="Add to favorites">♡</button>
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    </div>
+    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+</div>
+
+<!-- Tag Modal -->
+<div id="tagModal" class="tag-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Manage Tags</h2>
+            <button class="modal-close" onclick="closeTagModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div id="tagsList" class="tags-list"></div>
+            
+            <div class="create-tag-form">
+                <h3>Create New Tag</h3>
+                <div class="form-group">
+                    <input type="text" id="newTagName" placeholder="Tag name" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                </div>
+                <div class="form-group">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="color" id="newTagColor" value="#3498db">
+                        <button onclick="createNewTag()" class="btn-create-tag">Create</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tag-gallery-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.breadcrumb-nav a {
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.breadcrumb-nav a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    color: #999;
+}
+
+.breadcrumb-item {
+    font-weight: 500;
+    color: #333;
+}
+
+.no-images {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 16px;
+}
+
+/* Reuse gallery styles from folder.html */
+.images-grid {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.grid-item {
+    position: relative;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.grid-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.grid-item:hover .image-controls {
+    opacity: 1;
+}
+
+.gallery-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tag-btn, .delete-btn {
+    flex: 1;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.tag-btn {
+    background-color: #3498db;
+}
+
+.tag-btn:hover {
+    background-color: #2980b9;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+}
+
+.delete-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Lightbox styles */
+.lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox.active {
+    display: flex;
+}
+
+#lightboxImage {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.lightbox-controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 15px;
+    z-index: 1001;
+}
+
+.lightbox-favorite, .lightbox-close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.3);
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-favorite:hover, .lightbox-close:hover {
+    background-color: rgba(255,255,255,0.5);
+}
+
+.lightbox-favorite.active {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.lightbox-counter {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: white;
+    font-size: 14px;
+    background-color: rgba(0,0,0,0.5);
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+/* Tag Modal */
+.tag-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.tag-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.tags-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tag-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.tag-checkbox:hover {
+    background-color: #f5f5f5;
+}
+
+.tag-checkbox input {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.create-tag-form {
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+
+.create-tag-form h3 {
+    margin: 0 0 15px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.btn-create-tag {
+    padding: 8px 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-create-tag:hover {
+    background-color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .breadcrumb-nav {
+        font-size: 12px;
+    }
+    
+    .grid-item {
+        flex-basis: calc(50% - 4px);
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-item {
+        flex-basis: 100%;
+        height: auto !important;
+        aspect-ratio: 1;
+    }
+}
+</style>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+<script>
+    let allTags = [];
+    
+    // Load tags and favorites for all images
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTagsAndFavorites();
+    });
+    
+    function loadTagsAndFavorites() {
+        const images = document.querySelectorAll('.grid-item');
+        images.forEach(item => {
+            const folder = item.dataset.folder;
+            const filename = item.dataset.filename;
+            
+            // Load tags for this image
+            loadImageTags(folder, filename);
+            
+            // Check if favorited
+            checkImageFavorite(folder, filename);
+        });
+    }
+    
+    function loadImageTags(folder, filename) {
+        fetch(`/api/image-tags/${folder}/${filename}`)
+            .then(r => r.json())
+            .then(imageTags => {
+                const tagsContainer = document.getElementById(`tags-${filename}`);
+                if (tagsContainer && imageTags && imageTags.length > 0) {
+                    const tagHtml = imageTags
+                        .map(it => `<span class="tag-badge" style="background-color: ${it.tag.color}">${it.tag.name}</span>`)
+                        .join('');
+                    tagsContainer.innerHTML = tagHtml;
+                } else if (tagsContainer) {
+                    tagsContainer.innerHTML = '';
+                }
+            })
+            .catch(err => console.error('Error loading tags:', err));
+    }
+    
+    function checkImageFavorite(folder, filename) {
+        fetch(`/api/favorite/${folder}/${filename}`)
+            .then(r => r.json())
+            .then(data => {
+                const gridItem = document.querySelector(`[data-folder="${folder}"][data-filename="${filename}"]`);
+                const heartBtn = gridItem?.querySelector('.heart-btn');
+                if (heartBtn && data.is_favorite) {
+                    heartBtn.classList.add('active');
+                    heartBtn.textContent = '♥';
+                }
+            })
+            .catch(err => console.error('Error checking favorite:', err));
+    }
+    
+    // Toggle tag dropdown for an image
+    function toggleTagDropdown(folder, filename) {
+        const dropdown = document.getElementById(`tag-dropdown-${filename}`);
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.tag-dropdown').forEach(d => {
+            if (d.id !== `tag-dropdown-${filename}`) {
+                d.style.display = 'none';
+            }
+        });
+        
+        if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+            loadTagsForDropdown(folder, filename);
+            dropdown.style.display = 'block';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+    
+    // Load tags into dropdown
+    function loadTagsForDropdown(folder, filename) {
+        const tagList = document.getElementById(`tag-list-${filename}`);
+        if (!tagList) return;
+        
+        fetch('/api/tags')
+            .then(r => r.json())
+            .then(allTags => {
+                if (allTags.length === 0) {
+                    tagList.innerHTML = '<div style="padding: 12px; color: #999; text-align: center; font-size: 0.85em;">No tags available<br><a href="/tags" style="color: #667eea;">Create tags</a></div>';
+                    return;
+                }
+                
+                // Fetch current image tags
+                fetch(`/api/image-tags/${folder}/${filename}`)
+                    .then(r => r.json())
+                    .then(imageTags => {
+                        const currentTagIds = imageTags.map(it => it.tag_id);
+                        
+                        const tagHtml = allTags.map(tag => {
+                            const isActive = currentTagIds.includes(tag.id);
+                            return `
+                                <div class="tag-dropdown-item ${isActive ? 'active' : ''}" 
+                                     style="border-left-color: ${tag.color}"
+                                     onclick="toggleTagForImage('${folder}', '${filename}', ${tag.id}, this)">
+                                    <input type="checkbox" 
+                                           class="tag-dropdown-checkbox" 
+                                           ${isActive ? 'checked' : ''}
+                                           onclick="event.stopPropagation();">
+                                    <span>${tag.name}</span>
+                                </div>
+                            `;
+                        }).join('');
+                        
+                        tagList.innerHTML = tagHtml;
+                    });
+            })
+            .catch(err => {
+                console.error('Error loading tags:', err);
+                tagList.innerHTML = '<div style="padding: 12px; color: #e74c3c;">Error loading tags</div>';
+            });
+    }
+    
+    // Toggle tag assignment for image
+    function toggleTagForImage(folder, filename, tagId, element) {
+        const checkbox = element.querySelector('.tag-dropdown-checkbox');
+        const isCurrentlyActive = checkbox.checked;
+        const currentPageTagId = {{ tag.id }};
+        
+        checkbox.checked = !isCurrentlyActive;
+        
+        const method = isCurrentlyActive ? 'DELETE' : 'POST';
+        fetch(`/api/image-tag/${folder}/${filename}/${tagId}`, {
+            method: method
+        })
+        .then(r => {
+            if (!r.ok) {
+                throw new Error(`HTTP error! status: ${r.status}`);
+            }
+            return r.json();
+        })
+        .then(data => {
+            console.log('Tag toggle response:', data);
+            if (data.success) {
+                if (isCurrentlyActive) {
+                    element.classList.remove('active');
+                } else {
+                    element.classList.add('active');
+                }
+                
+                // Check if we're removing the current page's tag
+                if (isCurrentlyActive && parseInt(tagId) === currentPageTagId) {
+                    // Remove this image from the view with a fade animation
+                    const gridItem = element.closest('.grid-item');
+                    if (gridItem) {
+                        gridItem.style.transition = 'opacity 0.3s ease';
+                        gridItem.style.opacity = '0';
+                        setTimeout(() => {
+                            gridItem.remove();
+                            // Check if gallery is now empty
+                            const remainingItems = document.querySelectorAll('.grid-item');
+                            if (remainingItems.length === 0) {
+                                document.querySelector('.gallery-grid').innerHTML = '<div style="text-align:center; padding: 40px; color: #888;">No images with this tag</div>';
+                            }
+                        }, 300);
+                    }
+                } else {
+                    // Force reload tags display for this image with a small delay
+                    setTimeout(() => {
+                        loadImageTags(folder, filename);
+                    }, 100);
+                }
+            } else {
+                checkbox.checked = isCurrentlyActive;
+                console.error('Tag toggle failed:', data.message);
+                showNotification('Error: ' + (data.message || 'Failed to update tag'), 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error toggling tag:', err);
+            checkbox.checked = isCurrentlyActive;
+            showNotification('Error updating tag', 'error');
+        });
+    }
+    
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+            color: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 3000;
+            animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.tag-circle-btn') && !e.target.closest('.tag-dropdown')) {
+            document.querySelectorAll('.tag-dropdown').forEach(d => {
+                d.style.display = 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,246 @@
+# Web Image Gallery
+
+A smart, responsive web-based image gallery with advanced features for browsing, organizing, and managing images in different dimensions.
+
+## Features
+
+### 🎨 Smart Grid Layout
+- Automatically adjusts image sizes to fill gaps
+- Respects original image proportions
+- No wasted space - masonry-style grid
+- Responsive design for all devices
+
+### 📸 Image Viewing
+- Full-screen lightbox viewer
+- Keyboard navigation (Arrow keys)
+- Scroll wheel to navigate between images
+- Ctrl+Scroll wheel to zoom in/out
+- Close with Escape key
+
+### ❤️ Favorites System
+- Add/remove favorite folders
+- Quick access from navbar dropdown
+- Persistent storage in database
+
+### 🗂️ Folder Management
+- Dynamic folder detection
+- Display image count per folder
+- Support for multiple image formats (JPG, PNG, GIF, BMP, WebP, HEIC)
+
+### 🛠️ Image Management
+- One-click delete with confirmation
+- Delete button appears on hover
+- Automatic database cleanup
+
+### 📄 Pagination
+- 100 images per page (configurable)
+- Easy navigation through pages
+- Display current/total pages
+
+## Installation
+
+### Prerequisites
+- Python 3.8+
+- pip (Python package manager)
+
+### Quick Start
+
+1. **Clone or navigate to the project directory:**
+   ```bash
+   cd WebImageGalary
+   ```
+
+2. **Run the setup script:**
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+3. **Activate the virtual environment:**
+   ```bash
+   source venv/bin/activate
+   ```
+
+4. **Start the server:**
+   ```bash
+   python run.py
+   ```
+
+5. **Open your browser:**
+   Navigate to `http://localhost:5000`
+
+### Manual Installation
+
+1. **Create virtual environment:**
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the application:**
+   ```bash
+   python run.py
+   ```
+
+## Configuration
+
+Create a `.env` file based on `.env.example`:
+
+```env
+FLASK_ENV=development
+FLASK_DEBUG=1
+HOST=127.0.0.1
+PORT=5000
+DATASET_PATH=./dataset
+```
+
+### Environment Variables
+
+- `FLASK_ENV`: Set to `development` for debug mode
+- `HOST`: Server host (default: 127.0.0.1)
+- `PORT`: Server port (default: 5000)
+- `DATASET_PATH`: Path to image dataset (default: ./dataset)
+
+## Project Structure
+
+```
+WebImageGalary/
+├── app/
+│   ├── __init__.py           # Flask app factory
+│   ├── models.py             # Database models (Favorite, ImageMetadata)
+│   ├── routes.py             # Flask routes and API endpoints
+│   ├── utils.py              # Utility functions
+│   ├── templates/
+│   │   ├── base.html         # Base template
+│   │   ├── index.html        # Home page (folder listing)
+│   │   └── folder.html       # Gallery page
+│   └── static/
+│       ├── css/
+│       │   ├── style.css     # Global styles
+│       │   └── gallery.css   # Gallery-specific styles
+│       └── js/
+│           ├── app.js        # Global functionality
+│           └── gallery.js    # Gallery interactions
+├── dataset/                  # Your image folders
+├── run.py                    # Entry point
+├── requirements.txt          # Python dependencies
+├── setup.sh                  # Setup script
+└── .env.example              # Environment template
+```
+
+## API Endpoints
+
+### Web Routes
+- `GET /` - Home page with folder listing
+- `GET /folder/<folder_name>` - View images in a folder
+
+### API Endpoints
+- `GET /api/folders` - List all folders
+- `GET /api/folder/<folder_name>/images?page=1&per_page=100` - Get images
+- `GET /api/image/<folder_name>/<filename>` - Serve image file
+- `POST /api/favorite/<folder_name>` - Add folder to favorites
+- `DELETE /api/favorite/<folder_name>` - Remove folder from favorites
+- `GET /api/favorites` - List favorite folders
+- `DELETE /api/image/<folder_name>/<filename>` - Delete image
+
+## Image Format Support
+
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- BMP (.bmp)
+- WebP (.webp)
+- HEIC (.heic)
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Mobile browsers (iOS Safari, Chrome Mobile)
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `→` / Scroll Down | Next image |
+| `←` / Scroll Up | Previous image |
+| `Ctrl + Scroll` | Zoom in/out |
+| `Esc` | Close lightbox |
+
+## Troubleshooting
+
+### "No module named 'flask'"
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Database errors
+Delete `gallery.db` and restart the application.
+
+### Images not appearing
+- Check `DATASET_PATH` environment variable
+- Ensure images have supported extensions
+- Verify image files are readable
+
+### Port already in use
+```bash
+PORT=5001 python run.py
+```
+
+## Performance Tips
+
+1. **Optimize images**: Large images can slow down the gallery
+   ```bash
+   python dataset/convert.py  # Convert HEIC to JPG
+   ```
+
+2. **Remove duplicates**: Use the provided cleanup scripts
+   ```bash
+   python dataset/remove_similar_images.py
+   python dataset/delete_small_dimenssion.py
+   ```
+
+3. **Use pagination**: Gallery loads 100 images per page by default
+
+## Advanced Configuration
+
+### Running on a different host
+```bash
+HOST=0.0.0.0 PORT=8000 python run.py
+```
+
+### Production deployment
+Set `FLASK_ENV=production` and use a production WSGI server:
+```bash
+pip install gunicorn
+gunicorn run:app
+```
+
+## Development
+
+### Hot reload
+The application automatically reloads on file changes in debug mode.
+
+### Database shell
+```bash
+python
+>>> from app import create_app, db
+>>> app = create_app()
+>>> with app.app_context():
+...     db.create_all()
+```
+
+## License
+
+This project is provided as-is for personal use.
+
+## Support
+
+For issues or feature requests, check the dataset folder structure and ensure image files are properly formatted.
