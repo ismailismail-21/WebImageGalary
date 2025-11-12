@@ -66,9 +66,9 @@ def folder(folder_name):
     # Get breadcrumb navigation
     breadcrumbs = get_breadcrumb_path(folder_name)
     
-    # Load images using simple file-based approach (no database locking issues)
-    per_page = 100
-    images, total = get_folder_images(DATASET_PATH, folder_name, 1, per_page, use_layout=True)
+    # Load images using cached database query (much faster for large folders)
+    per_page = 50
+    images, total = get_folder_files_cached(DATASET_PATH, folder_name, 1, per_page)
     
     # Get all tags as dictionaries for JSON serialization
     try:

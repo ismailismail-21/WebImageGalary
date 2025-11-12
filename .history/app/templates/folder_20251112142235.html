@@ -182,7 +182,7 @@
             <button class="lightbox-fullscreen-btn" id="lightboxFullscreenBtn"
                 onclick="event.stopPropagation(); toggleFullscreen()" title="Toggle fullscreen">⛶</button>
             <button class="lightbox-slideshow-btn" id="lightboxSlideshowBtn"
-                title="Start slideshow (Spacebar)">▶</button>
+                onclick="event.stopPropagation(); toggleSlideshow()" title="Start slideshow">▶</button>
             <button class="lightbox-delete-btn" id="lightboxDeleteBtn"
                 onclick="event.stopPropagation(); deleteLightboxImage()" title="Delete image">🗑️</button>
             <button class="lightbox-favorite-btn" id="lightboxFavoriteBtn"

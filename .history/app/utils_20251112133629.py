@@ -312,79 +312,79 @@ def scan_folder_background(dataset_path, folder_name, app=None):
             files_processed = 0
 
             try:
-                # Walk through all files in the folder
-                for root, dirs, filenames in os.walk(folder_path):
-                    # Skip hidden directories and thumbnail directory
-                    dirs[:] = [d for d in dirs if not d.startswith('.') and d != '.thumbnails']
+            # Walk through all files in the folder
+            for root, dirs, filenames in os.walk(folder_path):
+                # Skip hidden directories and thumbnail directory
+                dirs[:] = [d for d in dirs if not d.startswith('.') and d != '.thumbnails']
 
-                    for filename in filenames:
-                        if is_supported_image(filename):
-                            rel_path = os.path.relpath(root, dataset_path)
-                            filepath = os.path.join(root, filename)
+                for filename in filenames:
+                    if is_supported_image(filename):
+                        rel_path = os.path.relpath(root, dataset_path)
+                        filepath = os.path.join(root, filename)
 
-                            try:
-                                # Get file metadata
-                                stat = os.stat(filepath)
-                                file_size = stat.st_size
-                                modified_time = datetime.fromtimestamp(stat.st_mtime)
+                        try:
+                            # Get file metadata
+                            stat = os.stat(filepath)
+                            file_size = stat.st_size
+                            modified_time = datetime.fromtimestamp(stat.st_mtime)
 
-                                # Determine file type
-                                file_ext = Path(filename).suffix.lower()
-                                if file_ext in VIDEO_EXTENSIONS:
-                                    file_type = 'video'
-                                elif file_ext == '.gif':
-                                    file_type = 'gif'
-                                else:
-                                    file_type = 'image'
+                            # Determine file type
+                            file_ext = Path(filename).suffix.lower()
+                            if file_ext in VIDEO_EXTENSIONS:
+                                file_type = 'video'
+                            elif file_ext == '.gif':
+                                file_type = 'gif'
+                            else:
+                                file_type = 'image'
 
-                                # Extract dimensions and metadata
-                                width, height, duration, fps = extract_file_metadata(filepath, file_type)
+                            # Extract dimensions and metadata
+                            width, height, duration, fps = extract_file_metadata(filepath, file_type)
 
-                                # Generate thumbnail
-                                thumbnail_path = generate_thumbnail(filepath, dataset_path)
+                            # Generate thumbnail
+                            thumbnail_path = generate_thumbnail(filepath, dataset_path)
 
-                                # Update or create database entry
-                                metadata = FileMetadata.query.filter_by(
+                            # Update or create database entry
+                            metadata = FileMetadata.query.filter_by(
+                                folder_path=rel_path,
+                                filename=filename
+                            ).first()
+
+                            if metadata:
+                                # Update existing
+                                metadata.file_size = file_size
+                                metadata.file_type = file_type
+                                metadata.width = width
+                                metadata.height = height
+                                metadata.duration = duration
+                                metadata.fps = fps
+                                metadata.thumbnail_path = thumbnail_path
+                                metadata.modified_at = modified_time
+                            else:
+                                # Create new
+                                metadata = FileMetadata(
                                     folder_path=rel_path,
-                                    filename=filename
-                                ).first()
+                                    filename=filename,
+                                    file_type=file_type,
+                                    file_size=file_size,
+                                    width=width,
+                                    height=height,
+                                    duration=duration,
+                                    fps=fps,
+                                    thumbnail_path=thumbnail_path,
+                                    modified_at=modified_time
+                                )
+                                db.session.add(metadata)
 
-                                if metadata:
-                                    # Update existing
-                                    metadata.file_size = file_size
-                                    metadata.file_type = file_type
-                                    metadata.width = width
-                                    metadata.height = height
-                                    metadata.duration = duration
-                                    metadata.fps = fps
-                                    metadata.thumbnail_path = thumbnail_path
-                                    metadata.modified_at = modified_time
-                                else:
-                                    # Create new
-                                    metadata = FileMetadata(
-                                        folder_path=rel_path,
-                                        filename=filename,
-                                        file_type=file_type,
-                                        file_size=file_size,
-                                        width=width,
-                                        height=height,
-                                        duration=duration,
-                                        fps=fps,
-                                        thumbnail_path=thumbnail_path,
-                                        modified_at=modified_time
-                                    )
-                                    db.session.add(metadata)
+                            files_processed += 1
 
-                                files_processed += 1
+                            # Commit in batches to avoid memory issues
+                            if files_processed % 100 == 0:
+                                db.session.commit()
+                                print(f"Processed {files_processed} files in {folder_name}")
 
-                                # Commit in batches to avoid memory issues
-                                if files_processed % 100 == 0:
-                                    db.session.commit()
-                                    print(f"Processed {files_processed} files in {folder_name}")
-
-                            except Exception as e:
-                                print(f"Error processing {filepath}: {e}")
-                                continue
+                        except Exception as e:
+                            print(f"Error processing {filepath}: {e}")
+                            continue
 
                 # Final commit
                 db.session.commit()

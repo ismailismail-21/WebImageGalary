@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Setup favorite button in lightbox
-    const lightboxFavBtn = document.querySelector('.lightbox-favorite-btn');
+    const lightboxFavBtn = document.querySelector('.lightbox-favorite');
     if (lightboxFavBtn) {
         lightboxFavBtn.addEventListener('click', () => {
             const images = document.querySelectorAll('.grid-item');
@@ -1180,7 +1180,7 @@ function updateLightboxFavoriteButton() {
 
     const folderName = currentImage.dataset.folder;
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
     if (!favoriteBtn) return;
 

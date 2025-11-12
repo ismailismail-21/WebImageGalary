@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Setup favorite button in lightbox
-    const lightboxFavBtn = document.querySelector('.lightbox-favorite-btn');
+    const lightboxFavBtn = document.querySelector('.lightbox-favorite');
     if (lightboxFavBtn) {
         lightboxFavBtn.addEventListener('click', () => {
             const images = document.querySelectorAll('.grid-item');
@@ -314,11 +314,11 @@ function setupEventListeners() {
         favoriteBtn.addEventListener('click', toggleFavorite);
     }
 
-    // Slideshow button - removed click listener, only works with spacebar
-    // const slideshowBtn = document.getElementById('lightboxSlideshowBtn');
-    // if (slideshowBtn) {
-    //     slideshowBtn.addEventListener('click', toggleSlideshow);
-    // }
+    // Slideshow button
+    const slideshowBtn = document.getElementById('lightboxSlideshowBtn');
+    if (slideshowBtn) {
+        slideshowBtn.addEventListener('click', toggleSlideshow);
+    }
 }
 
 function openLightbox(imgElement) {
@@ -481,12 +481,15 @@ function toggleFullscreen() {
 
 /* Slideshow functionality */
 function toggleSlideshow() {
+    console.log('toggleSlideshow called'); // Debug
     const slideshowBtn = document.getElementById('lightboxSlideshowBtn');
 
     if (!slideshowBtn) {
         console.error('Slideshow button not found!');
         return;
     }
+    
+    console.log('Slideshow button found:', slideshowBtn); // Debug
 
     if (slideshowInterval) {
         // Stop slideshow
@@ -1180,7 +1183,7 @@ function updateLightboxFavoriteButton() {
 
     const folderName = currentImage.dataset.folder;
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
     if (!favoriteBtn) return;
 

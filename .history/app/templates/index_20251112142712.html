@@ -93,7 +93,7 @@
             <button class="lightbox-fullscreen-btn" id="lightboxFullscreenBtn"
                 onclick="event.stopPropagation(); toggleFullscreen()" title="Toggle fullscreen">⛶</button>
             <button class="lightbox-slideshow-btn" id="lightboxSlideshowBtn"
-                title="Start slideshow (Spacebar)">▶</button>
+                onclick="event.stopPropagation(); toggleSlideshow()" title="Start slideshow">▶</button>
             <button class="lightbox-delete-btn" id="lightboxDeleteBtn"
                 onclick="event.stopPropagation(); deleteLightboxImage()" title="Delete image">🗑️</button>
             <button class="lightbox-favorite-btn" id="lightboxFavoriteBtn"
@@ -281,8 +281,12 @@
     }
 
     .lightbox-fullscreen-btn,
+    .lightbox-slideshow-btn,
+    .lightbox-delete-btn,
     .lightbox-favorite-btn,
     .lightbox-close {
+        position: absolute;
+        top: 20px;
         background-color: rgba(255, 107, 107, 0.9);
         border: none;
         color: white;
@@ -297,19 +301,41 @@
         justify-content: center;
     }
 
-    .lightbox-favorite-btn {
+    .lightbox-fullscreen-btn {
+        right: 20px;
         background-color: rgba(102, 126, 234, 0.9);
     }
 
-    .lightbox-fullscreen-btn {
+    .lightbox-slideshow-btn {
+        right: 80px;
+        background-color: rgba(52, 152, 219, 0.9);
+    }
+
+    .lightbox-delete-btn {
+        right: 140px;
+        background-color: rgba(231, 76, 60, 0.9);
+    }
+
+    .lightbox-favorite-btn {
+        right: 200px;
         background-color: rgba(102, 126, 234, 0.9);
+    }
+
+    .lightbox-close {
+        right: 260px;
     }
 
     .lightbox-favorite-btn.active {
         background-color: #ff6b6b;
     }
 
+    .lightbox-slideshow-btn.playing {
+        background-color: #27ae60;
+    }
+
     .lightbox-fullscreen-btn:hover,
+    .lightbox-slideshow-btn:hover,
+    .lightbox-delete-btn:hover,
     .lightbox-favorite-btn:hover,
     .lightbox-close:hover {
         transform: scale(1.1);
@@ -317,6 +343,14 @@
 
     .lightbox-fullscreen-btn:hover {
         background-color: #667eea;
+    }
+
+    .lightbox-slideshow-btn:hover {
+        background-color: #3498db;
+    }
+
+    .lightbox-delete-btn:hover {
+        background-color: #e74c3c;
     }
 
     .lightbox-favorite-btn:hover {

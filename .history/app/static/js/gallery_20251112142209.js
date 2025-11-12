@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Setup favorite button in lightbox
-    const lightboxFavBtn = document.querySelector('.lightbox-favorite-btn');
+    const lightboxFavBtn = document.querySelector('.lightbox-favorite');
     if (lightboxFavBtn) {
         lightboxFavBtn.addEventListener('click', () => {
             const images = document.querySelectorAll('.grid-item');
@@ -314,11 +314,11 @@ function setupEventListeners() {
         favoriteBtn.addEventListener('click', toggleFavorite);
     }
 
-    // Slideshow button - removed click listener, only works with spacebar
-    // const slideshowBtn = document.getElementById('lightboxSlideshowBtn');
-    // if (slideshowBtn) {
-    //     slideshowBtn.addEventListener('click', toggleSlideshow);
-    // }
+    // Slideshow button
+    const slideshowBtn = document.getElementById('lightboxSlideshowBtn');
+    if (slideshowBtn) {
+        slideshowBtn.addEventListener('click', toggleSlideshow);
+    }
 }
 
 function openLightbox(imgElement) {
@@ -764,20 +764,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function nextImage() {
     const images = document.querySelectorAll('.grid-item');
-
+    
     // Check if we're at the last image
     if (currentImageIndex >= images.length - 1) {
         // Check if there are more images to load
         if (typeof hasMoreImages !== 'undefined' && hasMoreImages && typeof loadMoreImages === 'function') {
             // Show loading notification
             showNotification('Loading more images...', 'info');
-
+            
             // Load more images
             await loadMoreImages();
-
+            
             // Get updated images list
             const updatedImages = document.querySelectorAll('.grid-item');
-
+            
             // Move to next image (which should now be available)
             if (updatedImages.length > images.length) {
                 currentImageIndex = images.length; // First image of newly loaded batch
@@ -1052,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function deleteLightboxImage() {
     const images = document.querySelectorAll('.grid-item');
     const currentImage = images[currentImageIndex];
-
+    
     if (!currentImage) {
         showNotification('No image selected', 'error');
         return;
@@ -1074,7 +1074,7 @@ function deleteLightboxImage() {
 
                 // Update image list
                 const updatedImages = document.querySelectorAll('.grid-item');
-
+                
                 if (updatedImages.length === 0) {
                     // No more images, close lightbox
                     closeLightbox();
@@ -1180,7 +1180,7 @@ function updateLightboxFavoriteButton() {
 
     const folderName = currentImage.dataset.folder;
     const filename = currentImage.dataset.filename;
-    const favoriteBtn = document.querySelector('.lightbox-favorite-btn');
+    const favoriteBtn = document.querySelector('.lightbox-favorite');
 
     if (!favoriteBtn) return;
 
