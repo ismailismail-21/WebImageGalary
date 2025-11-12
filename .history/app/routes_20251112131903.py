@@ -66,9 +66,9 @@ def folder(folder_name):
     # Get breadcrumb navigation
     breadcrumbs = get_breadcrumb_path(folder_name)
     
-    # Load images using cached database query (much faster for large folders)
+    # Load only first batch of images (for lazy loading)
     per_page = 50
-    images, total = get_folder_files_cached(DATASET_PATH, folder_name, 1, per_page)
+    images, total = get_folder_images(DATASET_PATH, folder_name, 1, per_page)
     
     # Get all tags as dictionaries for JSON serialization
     try:
@@ -159,7 +159,7 @@ def get_folder_data(folder_name):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 100, type=int)
     
-    images, total = get_folder_files_cached(DATASET_PATH, folder_name, page, per_page)
+    images, total = get_folder_images(DATASET_PATH, folder_name, page, per_page)
     
     # Add favorite status for each image
     for img in images:
@@ -390,7 +390,7 @@ def get_images_api(folder_name):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 50, type=int)
     
-    images, total = get_folder_files_cached(DATASET_PATH, folder_name, page, per_page)
+    images, total = get_folder_images(DATASET_PATH, folder_name, page, per_page)
     
     return jsonify({
         'images': images,

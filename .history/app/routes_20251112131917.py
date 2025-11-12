@@ -390,7 +390,7 @@ def get_images_api(folder_name):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 50, type=int)
     
-    images, total = get_folder_files_cached(DATASET_PATH, folder_name, page, per_page)
+    images, total = get_folder_images(DATASET_PATH, folder_name, page, per_page)
     
     return jsonify({
         'images': images,
