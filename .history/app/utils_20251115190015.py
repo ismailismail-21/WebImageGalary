@@ -419,7 +419,7 @@ def extract_file_metadata(filepath, file_type):
                 width, height = img.size
                 # For animated GIFs, try to get duration
                 if hasattr(img, 'is_animated') and img.is_animated:
-                    duration = sum(img.info.get('duration', 10) for _ in range(img.n_frames)) / 1000.0  # Convert to seconds
+                    duration = sum(img.info.get('duration', 100) for _ in range(img.n_frames)) / 1000.0  # Convert to seconds
 
     except Exception as e:
         print(f"Error extracting metadata from {filepath}: {e}")

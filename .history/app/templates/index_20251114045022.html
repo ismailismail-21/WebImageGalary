@@ -39,7 +39,7 @@
             <div class="favorite-card grid-item" data-folder="{{ image['folder'] }}"
                 data-filename="{{ image['filename'] }}" data-is-video="false"
                 id="fav-{{ image['folder'] }}-{{ image['filename'] }}" style="cursor: pointer;">
-                <img src="/api/image/{{ image['folder'] }}/{{ image['filename'] }}" loading="lazy" alt="{{ image['filename'] }}"
+                <img src="/api/image/{{ image['folder'] }}/{{ image['filename'] }}"  alt="{{ image['filename'] }}"
                     class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}"
                     onclick="openLightbox(this)" style="cursor: pointer;">
 
