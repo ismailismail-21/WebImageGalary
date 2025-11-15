@@ -480,7 +480,7 @@ def generate_thumbnail(filepath, dataset_path):
         print(f"Error generating thumbnail for {filepath}: {e}")
         return None
 
-def get_folder_files_cached(dataset_path, folder_name, page=1, per_page=30):
+def get_folder_files_cached(dataset_path, folder_name, page=1, per_page=50):
     """Get files from database with caching, fallback to scanning if needed"""
     from flask import current_app
     
