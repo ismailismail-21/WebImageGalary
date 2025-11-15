@@ -413,28 +413,15 @@ def get_subfolders_api(folder_name):
 @api_bp.route('/images/<path:folder_name>')
 def get_images_api(folder_name):
     """Get images with pagination for lazy loading"""
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 50, type=int)
-        
-        images, total = get_folder_files_cached(DATASET_PATH, folder_name, page, per_page)
-        
-        return jsonify({
-            'images': images,
-            'total': total,
-            'page': page,
-            'per_page': per_page,
-            'has_more': page * per_page < total
-        })
-    except Exception as e:
-        print(f"Error in get_images_api: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'error': str(e),
-            'images': [],
-            'total': 0,
-            'page': page,
-            'per_page': per_page,
-            'has_more': False
-        }), 500
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    
+    images, total = get_folder_files_cached(DATASET_PATH, folder_name, page, per_page)
+    
+    return jsonify({
+        'images': images,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'has_more': page * per_page < total
+    })
