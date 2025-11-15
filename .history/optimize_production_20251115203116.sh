@@ -21,30 +21,11 @@ echo ""
 # Install Redis if not present (optional but recommended)
 if ! command -v redis-server &> /dev/null; then
     echo "📦 Installing Redis (recommended for caching)..."
-    if command -v apt-get &> /dev/null; then
-        # Debian/Ubuntu
-        sudo apt-get update
-        sudo apt-get install -y redis-server
-        sudo systemctl enable redis-server
-        sudo systemctl start redis-server
-        echo "✅ Redis installed and started"
-    elif command -v yum &> /dev/null; then
-        # CentOS/RHEL/Fedora
-        sudo yum install -y redis
-        sudo systemctl enable redis
-        sudo systemctl start redis
-        echo "✅ Redis installed and started"
-    elif command -v dnf &> /dev/null; then
-        # Modern Fedora
-        sudo dnf install -y redis
-        sudo systemctl enable redis
-        sudo systemctl start redis
-        echo "✅ Redis installed and started"
+    if command -v brew &> /dev/null; then
+        brew install redis
+        echo "✅ Redis installed. Start it with: brew services start redis"
     else
         echo "⚠️  Please install Redis manually for optimal performance"
-        echo "   Ubuntu/Debian: sudo apt-get install redis-server"
-        echo "   CentOS/RHEL: sudo yum install redis"
-        echo "   Fedora: sudo dnf install redis"
     fi
 else
     echo "✅ Redis found"
@@ -187,8 +168,7 @@ echo "  1. Activate virtual environment: source venv/bin/activate"
 echo "  2. Run: ./scan_folders.sh"
 echo ""
 echo "Performance tips:"
-echo "  - Check Redis status: sudo systemctl status redis-server (or redis)"
-echo "  - Start Redis if needed: sudo systemctl start redis-server (or redis)"
+echo "  - Start Redis: brew services start redis"
 echo "  - Monitor memory usage with large folders"
 echo "  - Use SSD storage for faster thumbnail generation"
 echo "  - Consider using a CDN for static files in production"
