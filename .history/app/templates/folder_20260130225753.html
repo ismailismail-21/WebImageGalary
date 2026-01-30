@@ -61,8 +61,8 @@
         <a href="/folder/{{ subfolder.path|urlencode_path }}" class="subfolder-card">
             <div class="subfolder-thumbnail">
                 {% if subfolder.thumbnail %}
-                <img src="/api/image/{{ subfolder.thumbnail|urlencode_path }}" alt="{{ subfolder.name }}"
-                    class="subfolder-thumb-img" loading="lazy">
+                <img src="/api/image/{{ subfolder.thumbnail|urlencode_path }}" alt="{{ subfolder.name }}" class="subfolder-thumb-img"
+                    loading="lazy">
                 {% else %}
                 <div class="subfolder-icon-fallback">
                     {% if subfolder.has_subfolders %}📁{% else %}🖼️{% endif %}
@@ -110,16 +110,15 @@
             <video class="gallery-image gallery-video" data-width="{{ image.width }}" data-height="{{ image.height }}"
                 preload="metadata" onclick="openLightbox(this)" loop muted playsinline webkit-playsinline
                 crossorigin="anonymous">
-                <source src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
-                    type="video/mp4">
+                <source src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-play-icon">▶</div>
             <div class="video-duration" id="duration-{{ image.filename }}">0:00</div>
             {% else %}
-            <img src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
-                alt="{{ image.filename }}" class="gallery-image" data-width="{{ image.width }}"
-                data-height="{{ image.height }}" loading="lazy" onclick="openLightbox(this)" crossorigin="anonymous">
+            <img src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}" alt="{{ image.filename }}"
+                class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}" loading="lazy"
+                onclick="openLightbox(this)" crossorigin="anonymous">
             {% endif %}
 
             <!-- Image Controls (Heart and Delete) -->
@@ -551,7 +550,7 @@
 
         const encodedFolder = encodeURIComponent(folderName);
         const encodedFilename = encodeURIComponent(image.filename);
-
+        
         const mediaHtml = image.is_video ? `
             <video class="gallery-image gallery-video" data-width="${image.width}" data-height="${image.height}"
                 preload="metadata" onclick="openLightbox(this)" loop muted playsinline>

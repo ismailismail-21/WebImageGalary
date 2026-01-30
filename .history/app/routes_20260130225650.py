@@ -434,9 +434,6 @@ def remove_image_tag(folder_name, filename, tag_id):
 @api_bp.route('/subfolders/<path:folder_name>')
 def get_subfolders_api(folder_name):
     """Get subfolders with pagination"""
-    # Decode URL-encoded paths
-    folder_name = decode_path(folder_name)
-    
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     
@@ -459,9 +456,6 @@ def get_subfolders_api(folder_name):
 def get_images_api(folder_name):
     """Get images with pagination for lazy loading"""
     try:
-        # Decode URL-encoded paths
-        folder_name = decode_path(folder_name)
-        
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 50, type=int)
         

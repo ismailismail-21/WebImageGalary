@@ -1151,7 +1151,7 @@ function toggleImageFavorite(folderName, filename, button) {
 
     const method = isCurrentlyFavorited ? 'DELETE' : 'POST';
 
-    fetch(buildApiUrl('/api/favorite', folderName, filename), {
+    fetch(`/api/favorite/${folderName}/${filename}`, {
         method: method
     })
         .then(r => r.json())
@@ -1197,7 +1197,7 @@ function updateLightboxFavoriteButton() {
     if (!favoriteBtn) return;
 
     // Query the API to check if this image is favorited
-    fetch(buildApiUrl('/api/favorite', folderName, filename))
+    fetch(`/api/favorite/${folderName}/${filename}`)
         .then(r => r.json())
         .then(data => {
             if (data.is_favorite) {
@@ -1347,7 +1347,7 @@ function updateTagsList() {
 }
 
 function loadImageTags(folderName, filename) {
-    fetch(buildApiUrl('/api/image-tags', folderName, filename))
+    fetch(`/api/image-tags/${folderName}/${filename}`)
         .then(r => r.json())
         .then(data => {
             if (data.tags && data.tags.length > 0) {
@@ -1365,7 +1365,7 @@ function loadImageTags(folderName, filename) {
 function toggleImageTag(folderName, filename, tagId, isAdding) {
     const method = isAdding ? 'POST' : 'DELETE';
 
-    fetch(buildApiUrl('/api/image-tag', folderName, filename, tagId), {
+    fetch(`/api/image-tag/${folderName}/${filename}/${tagId}`, {
         method: method
     })
         .then(r => r.json())

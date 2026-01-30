@@ -58,11 +58,11 @@
     <h3>📁 Subfolders ({{ total_subfolders }})</h3>
     <div class="subfolders-grid" id="subfoldersGrid">
         {% for subfolder in subfolders %}
-        <a href="/folder/{{ subfolder.path|urlencode_path }}" class="subfolder-card">
+        <a href="/folder/{{ subfolder.path }}" class="subfolder-card">
             <div class="subfolder-thumbnail">
                 {% if subfolder.thumbnail %}
-                <img src="/api/image/{{ subfolder.thumbnail|urlencode_path }}" alt="{{ subfolder.name }}"
-                    class="subfolder-thumb-img" loading="lazy">
+                <img src="/api/image/{{ subfolder.thumbnail }}" alt="{{ subfolder.name }}" class="subfolder-thumb-img"
+                    loading="lazy">
                 {% else %}
                 <div class="subfolder-icon-fallback">
                     {% if subfolder.has_subfolders %}📁{% else %}🖼️{% endif %}
@@ -110,16 +110,15 @@
             <video class="gallery-image gallery-video" data-width="{{ image.width }}" data-height="{{ image.height }}"
                 preload="metadata" onclick="openLightbox(this)" loop muted playsinline webkit-playsinline
                 crossorigin="anonymous">
-                <source src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
-                    type="video/mp4">
+                <source src="/api/image/{{ folder_name }}/{{ image.filename }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-play-icon">▶</div>
             <div class="video-duration" id="duration-{{ image.filename }}">0:00</div>
             {% else %}
-            <img src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
-                alt="{{ image.filename }}" class="gallery-image" data-width="{{ image.width }}"
-                data-height="{{ image.height }}" loading="lazy" onclick="openLightbox(this)" crossorigin="anonymous">
+            <img src="/api/image/{{ folder_name }}/{{ image.filename }}" alt="{{ image.filename }}"
+                class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}" loading="lazy"
+                onclick="openLightbox(this)" crossorigin="anonymous">
             {% endif %}
 
             <!-- Image Controls (Heart and Delete) -->
@@ -342,7 +341,7 @@
                 }
 
                 // Fetch current image tags
-                fetch(buildApiUrl('/api/image-tags', folder, filename))
+                fetch(`/api/image-tags/${folder}/${filename}`)
                     .then(r => r.json())
                     .then(imageTags => {
                         // imageTags is an array of ImageTag objects with nested tag objects
@@ -386,7 +385,7 @@
 
         // Call API
         const method = isCurrentlyActive ? 'DELETE' : 'POST';
-        fetch(buildApiUrl('/api/image-tag', folder, filename, tagId), {
+        fetch(`/api/image-tag/${folder}/${filename}/${tagId}`, {
             method: method
         })
             .then(r => {
@@ -507,7 +506,7 @@
 
         try {
             currentImagePage++;
-            const response = await fetch(`/api/images/${encodeURIComponent(folderName)}?page=${currentImagePage}&per_page=50`);
+            const response = await fetch(`/api/images/${folderName}?page=${currentImagePage}&per_page=50`);
             const data = await response.json();
 
             if (data.images && data.images.length > 0) {
@@ -549,19 +548,16 @@
         gridItem.style.width = `${image.calc_width || 200}px`;
         gridItem.style.height = `${image.calc_height || 200}px`;
 
-        const encodedFolder = encodeURIComponent(folderName);
-        const encodedFilename = encodeURIComponent(image.filename);
-
         const mediaHtml = image.is_video ? `
             <video class="gallery-image gallery-video" data-width="${image.width}" data-height="${image.height}"
                 preload="metadata" onclick="openLightbox(this)" loop muted playsinline>
-                <source src="/api/image/${encodedFolder}/${encodedFilename}" type="video/mp4">
+                <source src="/api/image/${folderName}/${image.filename}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-play-icon">▶</div>
             <div class="video-duration" id="duration-${image.filename}">0:00</div>
         ` : `
-            <img src="/api/image/${encodedFolder}/${encodedFilename}" 
+            <img src="/api/image/${folderName}/${image.filename}" 
                  alt="${image.filename}"
                  class="gallery-image" 
                  data-width="${image.width}" 
@@ -607,7 +603,7 @@
 
         try {
             currentSubfolderPage++;
-            const response = await fetch(`/api/subfolders/${encodeURIComponent(folderName)}?page=${currentSubfolderPage}&per_page=20`);
+            const response = await fetch(`/api/subfolders/${folderName}?page=${currentSubfolderPage}&per_page=20`);
             const data = await response.json();
 
             if (data.subfolders && data.subfolders.length > 0) {
@@ -634,12 +630,11 @@
 
     function createSubfolderCard(subfolder) {
         const card = document.createElement('a');
-        card.href = `/folder/${encodeURIComponent(subfolder.path)}`;
+        card.href = `/folder/${subfolder.path}`;
         card.className = 'subfolder-card';
 
-        const encodedThumbnail = subfolder.thumbnail ? encodePathComponent(subfolder.thumbnail) : null;
-        const thumbnailHtml = encodedThumbnail
-            ? `<img src="/api/image/${encodedThumbnail}" alt="${subfolder.name}" class="subfolder-thumb-img" loading="lazy">`
+        const thumbnailHtml = subfolder.thumbnail
+            ? `<img src="/api/image/${subfolder.thumbnail}" alt="${subfolder.name}" class="subfolder-thumb-img" loading="lazy">`
             : `<div class="subfolder-icon-fallback">${subfolder.has_subfolders ? '📁' : '🖼️'}</div>`;
 
         const folderInfo = [];

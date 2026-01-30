@@ -39,9 +39,9 @@
             <div class="favorite-card grid-item" data-folder="{{ image['folder'] }}"
                 data-filename="{{ image['filename'] }}" data-is-video="false"
                 id="fav-{{ image['folder'] }}-{{ image['filename'] }}" style="cursor: pointer;">
-                <img src="/api/image/{{ image['folder']|urlencode_path }}/{{ image['filename']|urlencode_path }}"
-                    loading="lazy" alt="{{ image['filename'] }}" class="gallery-image" data-width="{{ image.width }}"
-                    data-height="{{ image.height }}" onclick="openLightbox(this)" style="cursor: pointer;">
+                <img src="/api/image/{{ image['folder']|urlencode_path }}/{{ image['filename']|urlencode_path }}" loading="lazy" alt="{{ image['filename'] }}"
+                    class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}"
+                    onclick="openLightbox(this)" style="cursor: pointer;">
 
                 <!-- Image Controls (Heart and Delete) -->
                 <div class="image-controls">
@@ -613,7 +613,7 @@
         const isFavorite = button.classList.contains('active');
         const method = isFavorite ? 'DELETE' : 'POST';
 
-        fetch(buildApiUrl('/api/favorite', folder, filename), {
+        fetch(`/api/favorite/${folder}/${filename}`, {
             method: method
         })
             .then(r => r.json())
@@ -659,7 +659,7 @@
             return;
         }
 
-        fetch(buildApiUrl('/api/image', folder, filename), {
+        fetch(`/api/delete/${folder}/${filename}`, {
             method: 'DELETE'
         })
             .then(r => r.json())
@@ -708,7 +708,7 @@
     function loadTagsForDropdown(folder, filename) {
         Promise.all([
             fetch('/api/tags').then(r => r.json()),
-            fetch(buildApiUrl('/api/image-tags', folder, filename)).then(r => r.json())
+            fetch(`/api/image-tags/${folder}/${filename}`).then(r => r.json())
         ])
             .then(([allTags, imageTags]) => {
                 const currentTagIds = imageTags.map(it => it.tag_id);
@@ -738,7 +738,7 @@
         checkbox.checked = !isCurrentlyActive;
 
         const method = isCurrentlyActive ? 'DELETE' : 'POST';
-        fetch(buildApiUrl('/api/image-tag', folder, filename, tagId), {
+        fetch(`/api/image-tag/${folder}/${filename}/${tagId}`, {
             method: method
         })
             .then(r => {
@@ -773,7 +773,7 @@
 
     // Load image tags
     function loadImageTags(folder, filename) {
-        fetch(buildApiUrl('/api/image-tags', folder, filename))
+        fetch(`/api/image-tags/${folder}/${filename}`)
             .then(r => r.json())
             .then(imageTags => {
                 const tagsContainer = document.getElementById('tags-' + filename);

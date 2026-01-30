@@ -1347,7 +1347,7 @@ function updateTagsList() {
 }
 
 function loadImageTags(folderName, filename) {
-    fetch(buildApiUrl('/api/image-tags', folderName, filename))
+    fetch(`/api/image-tags/${folderName}/${filename}`)
         .then(r => r.json())
         .then(data => {
             if (data.tags && data.tags.length > 0) {
@@ -1365,7 +1365,7 @@ function loadImageTags(folderName, filename) {
 function toggleImageTag(folderName, filename, tagId, isAdding) {
     const method = isAdding ? 'POST' : 'DELETE';
 
-    fetch(buildApiUrl('/api/image-tag', folderName, filename, tagId), {
+    fetch(`/api/image-tag/${folderName}/${filename}/${tagId}`, {
         method: method
     })
         .then(r => r.json())
