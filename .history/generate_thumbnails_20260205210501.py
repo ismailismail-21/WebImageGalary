@@ -306,15 +306,6 @@ def main():
     
     print(f"\n📂 Found {len(folders)} folder(s) to process\n")
     
-    # Clean old thumbnails if requested
-    if args.clean:
-        print("🧹 Cleaning old thumbnails...")
-        total_removed = 0
-        for folder in folders:
-            removed = clean_old_thumbnails(folder)
-            total_removed += removed
-        print(f"   Removed {total_removed} old thumbnail(s)\n")
-    
     # Process folders
     total_created = 0
     total_skipped = 0
@@ -324,9 +315,7 @@ def main():
         rel_path = os.path.relpath(folder, DATASET_PATH)
         print(f"📁 Processing: {rel_path}")
         
-        # If clean was used, force regenerate all
-        force = args.force or args.clean
-        results = process_folder(folder, args.size, force)
+        results = process_folder(folder, args.size, args.force)
         total_created += results['created']
         total_skipped += results['skipped']
         total_failed += results['failed']

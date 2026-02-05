@@ -42,20 +42,6 @@ def get_all_folders(dataset_path):
     return folders
 
 
-def clean_old_thumbnails(folder_path):
-    """Remove all old thumbnails from a folder."""
-    thumb_dir = os.path.join(folder_path, '.thumbnails')
-    removed = 0
-    if os.path.exists(thumb_dir):
-        for f in os.listdir(thumb_dir):
-            try:
-                os.remove(os.path.join(thumb_dir, f))
-                removed += 1
-            except Exception as e:
-                print(f"    ⚠️  Could not remove {f}: {e}")
-    return removed
-
-
 # Video preview settings
 VIDEO_PREVIEW_DURATION = 3.0  # seconds of video to capture
 VIDEO_PREVIEW_FPS = 8  # frames per second for preview
@@ -267,7 +253,6 @@ def main():
     parser.add_argument('--folder', '-f', type=str, help='Process only a specific folder (relative to dataset)')
     parser.add_argument('--size', '-s', type=int, default=DEFAULT_THUMB_SIZE, help=f'Thumbnail size in pixels (default: {DEFAULT_THUMB_SIZE})')
     parser.add_argument('--force', action='store_true', help='Regenerate all thumbnails even if they exist')
-    parser.add_argument('--clean', '-c', action='store_true', help='Remove old thumbnails before generating new ones')
     parser.add_argument('--workers', '-w', type=int, default=4, help='Number of parallel workers (default: 4)')
     args = parser.parse_args()
     
@@ -276,7 +261,6 @@ def main():
     print(f"📁 Dataset: {DATASET_PATH}")
     print(f"📐 Size: {args.size}x{args.size}")
     print(f"🔄 Force regenerate: {args.force}")
-    print(f"🧹 Clean old thumbnails: {args.clean}")
     print(f"👷 Workers: {args.workers}")
     print("=" * 50)
     
@@ -306,15 +290,6 @@ def main():
     
     print(f"\n📂 Found {len(folders)} folder(s) to process\n")
     
-    # Clean old thumbnails if requested
-    if args.clean:
-        print("🧹 Cleaning old thumbnails...")
-        total_removed = 0
-        for folder in folders:
-            removed = clean_old_thumbnails(folder)
-            total_removed += removed
-        print(f"   Removed {total_removed} old thumbnail(s)\n")
-    
     # Process folders
     total_created = 0
     total_skipped = 0
@@ -324,9 +299,7 @@ def main():
         rel_path = os.path.relpath(folder, DATASET_PATH)
         print(f"📁 Processing: {rel_path}")
         
-        # If clean was used, force regenerate all
-        force = args.force or args.clean
-        results = process_folder(folder, args.size, force)
+        results = process_folder(folder, args.size, args.force)
         total_created += results['created']
         total_skipped += results['skipped']
         total_failed += results['failed']
