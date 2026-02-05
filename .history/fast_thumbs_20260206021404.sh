@@ -71,12 +71,9 @@ process_image() {
     local size="$2"
     
     # Get directory and filename
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     # Create thumbnails folder in same directory
     local thumb_dir="$dir_path/thumbnails"
@@ -91,8 +88,8 @@ process_image() {
     # Create output directory
     mkdir -p "$thumb_dir"
     
-    # Generate thumbnail with ImageMagick - center crop to square
-    if convert "$file" -thumbnail "${size}x${size}^" -gravity center -extent "${size}x${size}" -quality 85 "$output" 2>/dev/null; then
+    # Generate thumbnail with smart crop
+    if vipsthumbnail "$file" --size "${size}x${size}" --smartcrop attention -o "$output" 2>/dev/null; then
         echo "✓ $base_name"
     else
         echo "✗ $base_name (failed)"
@@ -128,12 +125,9 @@ process_gif() {
     local file="$1"
     local size="$2"
     
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     local thumb_dir="$dir_path/thumbnails"
     local output="$thumb_dir/${name_no_ext}.webp"
@@ -147,7 +141,7 @@ process_gif() {
     mkdir -p "$thumb_dir"
     
     # Resize GIF and convert to WebP
-    local temp_gif="/tmp/temp_thumb_$$.gif"
+    local temp_gif="/tmp/temp_${name_no_ext}_$$.gif"
     
     if ffmpeg -i "$file" -vf "scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2" \
         -y "$temp_gif" -loglevel error 2>/dev/null; then
@@ -192,12 +186,9 @@ process_video() {
     local file="$1"
     local size="$2"
     
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     local thumb_dir="$dir_path/thumbnails"
     local output="$thumb_dir/${name_no_ext}.jpg"

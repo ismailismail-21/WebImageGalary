@@ -128,12 +128,9 @@ process_gif() {
     local file="$1"
     local size="$2"
     
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     local thumb_dir="$dir_path/thumbnails"
     local output="$thumb_dir/${name_no_ext}.webp"
@@ -147,7 +144,7 @@ process_gif() {
     mkdir -p "$thumb_dir"
     
     # Resize GIF and convert to WebP
-    local temp_gif="/tmp/temp_thumb_$$.gif"
+    local temp_gif="/tmp/temp_${name_no_ext}_$$.gif"
     
     if ffmpeg -i "$file" -vf "scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2" \
         -y "$temp_gif" -loglevel error 2>/dev/null; then
@@ -192,12 +189,9 @@ process_video() {
     local file="$1"
     local size="$2"
     
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     local thumb_dir="$dir_path/thumbnails"
     local output="$thumb_dir/${name_no_ext}.jpg"

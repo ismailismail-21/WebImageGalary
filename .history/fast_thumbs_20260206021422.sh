@@ -192,12 +192,9 @@ process_video() {
     local file="$1"
     local size="$2"
     
-    local dir_path
-    local base_name
-    local name_no_ext
-    dir_path="$(dirname "$file")"
-    base_name="$(basename "$file")"
-    name_no_ext="${base_name%.*}"
+    local dir_path=$(dirname "$file")
+    local base_name=$(basename "$file")
+    local name_no_ext="${base_name%.*}"
     
     local thumb_dir="$dir_path/thumbnails"
     local output="$thumb_dir/${name_no_ext}.jpg"
