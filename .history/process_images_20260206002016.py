@@ -64,7 +64,7 @@ def process_single_file(filepath, base_path, thumb_size, force=False):
     """
     try:
         relative_path = get_relative_path(filepath, base_path)
-        folder_path = os.path.dirname(relative_path)
+        folder_name = os.path.dirname(relative_path)
         filename = os.path.basename(filepath)
         
         # Get file info
@@ -77,7 +77,7 @@ def process_single_file(filepath, base_path, thumb_size, force=False):
         
         return {
             'filepath': filepath,
-            'folder_path': folder_path,
+            'folder_name': folder_name,
             'filename': filename,
             'file_type': file_type,
             'file_size': file_size,
@@ -98,7 +98,7 @@ def get_processed_files(app):
         # Get all files that have thumbnails
         processed = set()
         results = db.session.query(
-            FileMetadata.folder_path, 
+            FileMetadata.folder_name, 
             FileMetadata.filename,
             FileMetadata.thumbnail_path
         ).filter(
@@ -106,10 +106,10 @@ def get_processed_files(app):
             FileMetadata.thumbnail_path != ''
         ).all()
         
-        for folder_path, filename, thumb_path in results:
+        for folder_name, filename, thumb_path in results:
             # Check if thumbnail file actually exists
             if thumb_path and os.path.exists(thumb_path):
-                processed.add((folder_path, filename))
+                processed.add((folder_name, filename))
         
         return processed
 
@@ -120,7 +120,7 @@ def save_to_database(app, file_info, base_path):
         try:
             # Check if already exists
             existing = FileMetadata.query.filter_by(
-                folder_path=file_info['folder_path'],
+                folder_name=file_info['folder_name'],
                 filename=file_info['filename']
             ).first()
             
@@ -132,7 +132,7 @@ def save_to_database(app, file_info, base_path):
             else:
                 # Create new record
                 metadata = FileMetadata(
-                    folder_path=file_info['folder_path'],
+                    folder_name=file_info['folder_name'],
                     filename=file_info['filename'],
                     file_type=file_info['file_type'],
                     file_size=file_info['file_size'],
@@ -260,10 +260,10 @@ def main():
         files_to_process = []
         for filepath in all_files:
             relative_path = get_relative_path(filepath, base_path)
-            folder_path = os.path.dirname(relative_path)
+            folder_name = os.path.dirname(relative_path)
             filename = os.path.basename(filepath)
             
-            if (folder_path, filename) not in processed:
+            if (folder_name, filename) not in processed:
                 files_to_process.append(filepath)
         
         skipped = len(all_files) - len(files_to_process)

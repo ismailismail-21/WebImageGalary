@@ -260,10 +260,10 @@ def main():
         files_to_process = []
         for filepath in all_files:
             relative_path = get_relative_path(filepath, base_path)
-            folder_path = os.path.dirname(relative_path)
+            folder_name = os.path.dirname(relative_path)
             filename = os.path.basename(filepath)
             
-            if (folder_path, filename) not in processed:
+            if (folder_name, filename) not in processed:
                 files_to_process.append(filepath)
         
         skipped = len(all_files) - len(files_to_process)
