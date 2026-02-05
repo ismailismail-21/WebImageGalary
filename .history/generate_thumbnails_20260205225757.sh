@@ -176,27 +176,24 @@ generate_video_thumb() {
     local duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$src" 2>/dev/null)
     duration=${duration%.*}  # Remove decimal
     duration=${duration:-0}
-    # Remove any non-numeric
-    duration=$(echo "$duration" | tr -cd '0-9')
-    duration=${duration:-0}
     
-    if [[ "$duration" -lt 1 ]] 2>/dev/null; then
+    if [[ "$duration" -lt 1 ]]; then
         # Very short video - just get first frame as static
         local static_thumb="${thumb_dir}/${name}_thumb.jpg"
         ffmpeg -y -i "$src" -vframes 1 \
-            -vf "scale=${size}:${size}:force_original_aspect_ratio=decrease" \
+            -vf "scale='min(${size},iw)':min'(${size},ih)':force_original_aspect_ratio=decrease" \
             "$static_thumb" 2>/dev/null && echo "OK:$filename" || echo "FAIL:$filename"
     else
         # Create animated preview from first few seconds
         local preview_duration=$VIDEO_PREVIEW_DURATION
-        if [[ "$duration" -lt "$preview_duration" ]] 2>/dev/null; then
+        if [[ "$duration" -lt "$preview_duration" ]]; then
             preview_duration=$duration
         fi
         
         # Generate animated WebP preview
         ffmpeg -y -i "$src" \
             -t "$preview_duration" \
-            -vf "scale=${size}:${size}:force_original_aspect_ratio=decrease,fps=${VIDEO_PREVIEW_FPS}" \
+            -vf "scale='min(${size},iw)':min'(${size},ih)':force_original_aspect_ratio=decrease,fps=${VIDEO_PREVIEW_FPS}" \
             -loop 0 -an \
             -quality 75 \
             "$thumb_path" 2>/dev/null && echo "OK:$filename" || echo "FAIL:$filename"
