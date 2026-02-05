@@ -213,35 +213,9 @@ def generate_thumbnail(source_path, thumb_dir, filename, size):
         return False, None
 
 
-def process_single_file(args):
-    """Process a single file - used for parallel processing."""
-    source_path, thumb_dir, filename, size, force, file_num, total_files = args
-    
-    name = os.path.splitext(filename)[0]
-    possible_thumbs = [
-        os.path.join(thumb_dir, f"{name}_thumb.jpg"),
-        os.path.join(thumb_dir, f"{name}_thumb.webp")
-    ]
-    
-    # Check if thumbnail exists and is up-to-date
-    if not force:
-        for thumb_path in possible_thumbs:
-            if os.path.exists(thumb_path):
-                source_mtime = os.path.getmtime(source_path)
-                thumb_mtime = os.path.getmtime(thumb_path)
-                if thumb_mtime >= source_mtime:
-                    return 'skipped', filename
-    
-    # Generate thumbnail
-    success, _ = generate_thumbnail(source_path, thumb_dir, filename, size)
-    return ('created' if success else 'failed'), filename
-
-
-def process_folder(folder_path, size, force=False, workers=4, start_num=0, total_files=0):
-    """Process all images in a folder and generate thumbnails using parallel processing."""
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    
-    results = {'created': 0, 'skipped': 0, 'failed': 0, 'processed': 0}
+def process_folder(folder_path, size, force=False):
+    """Process all images in a folder and generate thumbnails."""
+    results = {'created': 0, 'skipped': 0, 'failed': 0}
     
     # Create thumbnails directory
     thumb_dir = os.path.join(folder_path, '.thumbnails')
@@ -254,32 +228,36 @@ def process_folder(folder_path, size, force=False, workers=4, start_num=0, total
         and os.path.isfile(os.path.join(folder_path, f))
     ]
     
-    if not files:
-        return results
-    
-    # Prepare arguments for parallel processing
-    tasks = [
-        (os.path.join(folder_path, f), thumb_dir, f, size, force, start_num + i + 1, total_files)
-        for i, f in enumerate(files)
-    ]
-    
-    # Process in parallel
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(process_single_file, task): task[2] for task in tasks}
+    for filename in files:
+        source_path = os.path.join(folder_path, filename)
         
-        for future in as_completed(futures):
-            result, filename = future.result()
-            results['processed'] += 1
-            current_num = start_num + results['processed']
-            
-            if result == 'created':
-                results['created'] += 1
-                print(f"    [{current_num}/{total_files}] ✅ {filename}")
-            elif result == 'skipped':
+        # Check if any thumbnail exists for this file (could be .jpg or .webp)
+        name = os.path.splitext(filename)[0]
+        possible_thumbs = [
+            os.path.join(thumb_dir, f"{name}_thumb.jpg"),
+            os.path.join(thumb_dir, f"{name}_thumb.webp")
+        ]
+        
+        # Check if thumbnail exists and is up-to-date
+        existing_thumb = None
+        for thumb_path in possible_thumbs:
+            if os.path.exists(thumb_path):
+                existing_thumb = thumb_path
+                break
+        
+        if not force and existing_thumb:
+            source_mtime = os.path.getmtime(source_path)
+            thumb_mtime = os.path.getmtime(existing_thumb)
+            if thumb_mtime >= source_mtime:
                 results['skipped'] += 1
-            else:
-                results['failed'] += 1
-                print(f"    [{current_num}/{total_files}] ❌ {filename}")
+                continue
+        
+        # Generate thumbnail
+        success, thumb_filename = generate_thumbnail(source_path, thumb_dir, filename, size)
+        if success:
+            results['created'] += 1
+        else:
+            results['failed'] += 1
     
     return results
 
@@ -341,38 +319,20 @@ def main():
     total_created = 0
     total_skipped = 0
     total_failed = 0
-    total_files = sum(
-        len([f for f in os.listdir(folder) 
-             if Path(f).suffix.lower() in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS])
-        for folder in folders
-    )
-    processed_files = 0
-    
-    print(f"📊 Total files to process: {total_files}")
-    print(f"⚡ Using {args.workers} parallel workers\n")
     
     for folder in folders:
         rel_path = os.path.relpath(folder, DATASET_PATH)
-        folder_file_count = len([f for f in os.listdir(folder) 
-                                  if Path(f).suffix.lower() in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS])
-        print(f"\n📁 Processing: {rel_path} ({folder_file_count} files)")
+        print(f"📁 Processing: {rel_path}")
         
         # If clean was used, force regenerate all
         force = args.force or args.clean
-        results = process_folder(folder, args.size, force, args.workers, processed_files, total_files)
+        results = process_folder(folder, args.size, force)
         total_created += results['created']
         total_skipped += results['skipped']
         total_failed += results['failed']
         
-        processed_files += results['processed']
-        
-        # Show folder summary
-        print(f"    📊 Folder done: ✅ {results['created']} created | ⏭️ {results['skipped']} skipped | ❌ {results['failed']} failed")
-        
-        # Show overall progress
-        if total_files > 0:
-            progress = (processed_files / total_files) * 100
-            print(f"    📈 Overall progress: {processed_files}/{total_files} ({progress:.1f}%)")
+        if results['created'] > 0 or results['failed'] > 0:
+            print(f"    ✅ Created: {results['created']} | ⏭️  Skipped: {results['skipped']} | ❌ Failed: {results['failed']}")
     
     # Summary
     elapsed = time.time() - start_time
@@ -383,8 +343,6 @@ def main():
     print(f"⏭️  Already existed: {total_skipped}")
     print(f"❌ Failed: {total_failed}")
     print(f"⏱️  Time: {elapsed:.1f} seconds")
-    if total_created > 0 and elapsed > 0:
-        print(f"⚡ Speed: {total_created / elapsed:.1f} thumbnails/second")
     print("\n✨ Done!")
 
 

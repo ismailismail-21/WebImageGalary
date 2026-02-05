@@ -353,26 +353,25 @@ def main():
     
     for folder in folders:
         rel_path = os.path.relpath(folder, DATASET_PATH)
-        folder_file_count = len([f for f in os.listdir(folder) 
-                                  if Path(f).suffix.lower() in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS])
-        print(f"\n📁 Processing: {rel_path} ({folder_file_count} files)")
+        print(f"📁 Processing: {rel_path}")
         
         # If clean was used, force regenerate all
         force = args.force or args.clean
-        results = process_folder(folder, args.size, force, args.workers, processed_files, total_files)
+        results = process_folder(folder, args.size, force, args.workers)
         total_created += results['created']
         total_skipped += results['skipped']
         total_failed += results['failed']
         
-        processed_files += results['processed']
+        folder_total = results['created'] + results['skipped'] + results['failed']
+        processed_files += folder_total
         
-        # Show folder summary
-        print(f"    📊 Folder done: ✅ {results['created']} created | ⏭️ {results['skipped']} skipped | ❌ {results['failed']} failed")
+        if results['created'] > 0 or results['failed'] > 0:
+            print(f"    ✅ Created: {results['created']} | ⏭️  Skipped: {results['skipped']} | ❌ Failed: {results['failed']}")
         
-        # Show overall progress
+        # Show progress
         if total_files > 0:
             progress = (processed_files / total_files) * 100
-            print(f"    📈 Overall progress: {processed_files}/{total_files} ({progress:.1f}%)")
+            print(f"    📈 Progress: {processed_files}/{total_files} ({progress:.1f}%)")
     
     # Summary
     elapsed = time.time() - start_time
