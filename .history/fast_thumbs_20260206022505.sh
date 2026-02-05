@@ -91,11 +91,8 @@ process_image() {
     # Create output directory
     mkdir -p "$thumb_dir"
     
-    # Generate thumbnail with vipsthumbnail (FAST!)
-    # -s SIZE: thumbnail size
-    # --smartcrop attention: smart crop to interesting area
-    # -o FILE: explicit output path (don't use format specifiers)
-    if vipsthumbnail "$file" -s "$size" --smartcrop attention -o "$output" 2>/dev/null; then
+    # Generate thumbnail with ImageMagick - center crop to square
+    if convert "$file" -thumbnail "${size}x${size}^" -gravity center -extent "${size}x${size}" -quality 85 "$output" 2>/dev/null; then
         echo "✓ $base_name"
     else
         echo "✗ $base_name (failed)"
