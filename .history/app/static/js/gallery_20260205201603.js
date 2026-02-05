@@ -839,8 +839,7 @@ function loadImageToLightbox(gridItem) {
     } else {
         lightboxVideo.style.display = 'none';
         lightboxImage.style.display = 'block';
-        // Use full resolution image for lightbox (data-full-src), fallback to src if not available
-        lightboxImage.src = img.dataset.fullSrc || img.src;
+        lightboxImage.src = img.src;
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
     }
