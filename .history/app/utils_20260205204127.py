@@ -431,13 +431,8 @@ def extract_file_metadata(filepath, file_type):
 
     return width, height, duration, fps
 
-# Video preview settings
-VIDEO_PREVIEW_DURATION = 3.0  # seconds of video to capture
-VIDEO_PREVIEW_FPS = 8  # frames per second for preview
-
-
 def generate_thumbnail(filepath, dataset_path, thumb_size=300):
-    """Generate thumbnail and return relative path. Preserves animation for GIF/WEBP and creates animated previews for videos."""
+    """Generate thumbnail and return relative path. Preserves animation for GIF/WEBP."""
     rel_path = os.path.relpath(filepath, dataset_path)
     file_dir = os.path.dirname(rel_path)
     filename = os.path.basename(rel_path)
@@ -465,78 +460,20 @@ def generate_thumbnail(filepath, dataset_path, thumb_size=300):
         file_ext = Path(filepath).suffix.lower()
 
         if file_ext in VIDEO_EXTENSIONS:
-            # Create animated preview from video
-            thumb_filename = f"{name}_thumb.webp"
+            # Extract first frame for video thumbnail
+            thumb_filename = f"{name}_thumb.jpg"
             thumb_path = os.path.join(thumb_dir, thumb_filename)
             
             cap = cv2.VideoCapture(filepath)
-            if not cap.isOpened():
-                return None
-            
-            # Get video properties
-            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            video_fps = cap.get(cv2.CAP_PROP_FPS) or 30
-            duration = total_frames / video_fps if video_fps > 0 else 0
-            
-            if total_frames < 2 or duration < 0.1:
-                # Very short video - just get first frame as static
+            if cap.isOpened():
                 ret, frame = cap.read()
                 if ret:
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     img = Image.fromarray(frame_rgb)
                     img.thumbnail((thumb_size, thumb_size))
-                    thumb_filename = f"{name}_thumb.jpg"
-                    thumb_path = os.path.join(thumb_dir, thumb_filename)
                     img.save(thumb_path, 'JPEG', quality=85)
-                    cap.release()
-                    return os.path.relpath(thumb_path, dataset_path)
                 cap.release()
-                return None
-            
-            # Calculate which frames to extract
-            preview_duration = min(VIDEO_PREVIEW_DURATION, duration)
-            num_frames = int(preview_duration * VIDEO_PREVIEW_FPS)
-            num_frames = max(4, min(num_frames, 30))  # Between 4-30 frames
-            
-            frame_interval = (preview_duration * video_fps) / num_frames
-            
-            frames = []
-            frame_duration = int(1000 / VIDEO_PREVIEW_FPS)  # ms per frame
-            
-            for i in range(num_frames):
-                frame_pos = int(i * frame_interval)
-                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
-                ret, frame = cap.read()
-                
-                if ret:
-                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    img = Image.fromarray(frame_rgb)
-                    img.thumbnail((thumb_size, thumb_size))
-                    
-                    if img.mode != 'RGBA':
-                        img = img.convert('RGBA')
-                    frames.append(img)
-            
-            cap.release()
-            
-            if len(frames) >= 2:
-                frames[0].save(
-                    thumb_path,
-                    'WEBP',
-                    save_all=True,
-                    append_images=frames[1:],
-                    duration=[frame_duration] * len(frames),
-                    loop=0,
-                    quality=75
-                )
-                return os.path.relpath(thumb_path, dataset_path)
-            elif len(frames) == 1:
-                thumb_filename = f"{name}_thumb.jpg"
-                thumb_path = os.path.join(thumb_dir, thumb_filename)
-                frames[0].convert('RGB').save(thumb_path, 'JPEG', quality=85)
-                return os.path.relpath(thumb_path, dataset_path)
-            
-            return None
+            return os.path.relpath(thumb_path, dataset_path)
         else:
             # Process image
             with Image.open(filepath) as img:
