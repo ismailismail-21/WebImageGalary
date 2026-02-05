@@ -1,0 +1,245 @@
+# Web Image Gallery - Commands Reference
+
+## Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Generate thumbnails (fast bash script)
+./generate_thumbnails.sh --size 400
+
+# 3. Scan folders to database
+python scan_folders.py
+
+# 4. Start server
+python run.py
+```
+
+---
+
+## Thumbnail Generation
+
+### Bash Script (Recommended - Fast)
+
+Requires: `ffmpeg`, `imagemagick`, `parallel`
+
+```bash
+# Install dependencies (Ubuntu/Debian)
+sudo apt install ffmpeg imagemagick parallel
+
+# Install dependencies (macOS)
+brew install ffmpeg imagemagick parallel
+```
+
+| Command | Description |
+|---------|-------------|
+| `./generate_thumbnails.sh` | Generate all thumbnails (default 300px) |
+| `./generate_thumbnails.sh --size 400` | Custom thumbnail size |
+| `./generate_thumbnails.sh --jobs 8` | Use 8 parallel workers |
+| `./generate_thumbnails.sh --folder "corba"` | Specific folder only |
+| `./generate_thumbnails.sh --clean` | Remove old thumbnails first |
+| `./generate_thumbnails.sh --help` | Show all options |
+
+**Full example:**
+```bash
+./generate_thumbnails.sh --size 400 --jobs 8 --clean
+```
+
+### Python Script (Slower but cross-platform)
+
+| Command | Description |
+|---------|-------------|
+| `python generate_thumbnails.py` | Generate all thumbnails |
+| `python generate_thumbnails.py --size 400` | Custom size |
+| `python generate_thumbnails.py --workers 8` | Use 8 workers |
+| `python generate_thumbnails.py --folder "corba"` | Specific folder only |
+| `python generate_thumbnails.py --clean` | Remove old thumbnails first |
+| `python generate_thumbnails.py --force` | Regenerate all |
+
+**Full example:**
+```bash
+python generate_thumbnails.py --size 400 --workers 8 --clean
+```
+
+---
+
+## Database Scanning
+
+| Command | Description |
+|---------|-------------|
+| `python scan_folders.py` | Scan all folders, find existing thumbnails |
+| `python scan_folders.py --with-thumbnails` | Scan + generate thumbnails |
+| `python scan_folders.py --folder "corba"` | Specific folder only |
+| `python scan_folders.py --force` | Rescan all files |
+
+**Full example:**
+```bash
+python scan_folders.py --folder "corba" --with-thumbnails
+```
+
+---
+
+## Running the Server
+
+| Command | Description |
+|---------|-------------|
+| `python run.py` | Start server (http://127.0.0.1:5001) |
+
+### Environment Variables
+
+```bash
+# Custom port
+PORT=8080 python run.py
+
+# Custom host (accessible from network)
+HOST=0.0.0.0 python run.py
+
+# Custom dataset path
+DATASET_PATH=/path/to/images python run.py
+
+# Development mode
+FLASK_ENV=development python run.py
+```
+
+---
+
+## Common Workflows
+
+### First Time Setup
+
+```bash
+# 1. Generate all thumbnails
+./generate_thumbnails.sh --size 400 --jobs 8
+
+# 2. Scan to database
+python scan_folders.py
+
+# 3. Start server
+python run.py
+```
+
+### Add New Images to Existing Folder
+
+```bash
+# Generate thumbnails for new images only (skips existing)
+./generate_thumbnails.sh --folder "my_folder"
+
+# Update database
+python scan_folders.py --folder "my_folder"
+```
+
+### Add New Folder
+
+```bash
+# 1. Copy images to dataset/new_folder/
+
+# 2. Generate thumbnails
+./generate_thumbnails.sh --folder "new_folder" --size 400
+
+# 3. Scan to database
+python scan_folders.py --folder "new_folder"
+```
+
+### Regenerate All Thumbnails (Fresh Start)
+
+```bash
+# Clean and regenerate
+./generate_thumbnails.sh --clean --size 400 --jobs 8
+
+# Rescan database
+python scan_folders.py --force
+```
+
+### All-in-One (Python only, slower)
+
+```bash
+python scan_folders.py --with-thumbnails --force
+```
+
+---
+
+## Performance Tips
+
+### Check Your CPU Cores
+
+```bash
+# macOS
+sysctl -n hw.ncpu
+
+# Linux
+nproc
+```
+
+### Recommended Workers
+
+| CPU Cores | Recommended `--jobs` |
+|-----------|---------------------|
+| 2 | 2 |
+| 4 | 4 |
+| 8 | 6-8 |
+| 12+ | 8-12 |
+
+### Speed Comparison
+
+| Method | Speed |
+|--------|-------|
+| Python (1 worker) | ~2-5 img/sec |
+| Python (4 workers) | ~8-15 img/sec |
+| Bash + ffmpeg | ~30-100 img/sec |
+
+---
+
+## Thumbnail Output
+
+| Source Type | Thumbnail Output |
+|-------------|------------------|
+| Static image (jpg, png) | `*_thumb.jpg` |
+| Animated GIF | `*_thumb.webp` (animated) |
+| Animated WebP | `*_thumb.webp` (animated) |
+| Video (mp4, mov) | `*_thumb.webp` (3 sec animated preview) |
+
+Thumbnails are stored in `.thumbnails/` folder inside each image folder.
+
+---
+
+## Troubleshooting
+
+### Thumbnails not showing?
+
+```bash
+# Regenerate thumbnails
+./generate_thumbnails.sh --clean --size 400
+
+# Rescan database
+python scan_folders.py --force
+```
+
+### Database out of sync?
+
+```bash
+python scan_folders.py --force
+```
+
+### Bash script errors?
+
+```bash
+# Check dependencies
+ffmpeg -version
+convert --version
+parallel --version
+
+# If missing, install:
+# Ubuntu: sudo apt install ffmpeg imagemagick parallel
+# macOS: brew install ffmpeg imagemagick parallel
+```
+
+### Run in background (large dataset)
+
+```bash
+# Run and log output
+nohup ./generate_thumbnails.sh --size 400 --jobs 8 > thumbnails.log 2>&1 &
+
+# Check progress
+tail -f thumbnails.log
+```
