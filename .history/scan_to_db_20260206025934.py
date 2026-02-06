@@ -226,27 +226,17 @@ Examples:
                         fm.thumbnail_path = thumb_path
                         fm.file_size = os.path.getsize(filepath)
                         fm.file_type = get_file_type(filepath)
-                        # Update dimensions
-                        width, height = get_dimensions(filepath)
-                        if width and height:
-                            fm.width = width
-                            fm.height = height
                         fm.modified_at = datetime.utcnow()
                         updated += 1
                     else:
                         skipped += 1
                 else:
-                    # Get dimensions
-                    width, height = get_dimensions(filepath)
-                    
                     # Create new record
                     fm = FileMetadata(
                         folder_path=folder_path,
                         filename=filename,
                         file_type=get_file_type(filepath),
                         file_size=os.path.getsize(filepath),
-                        width=width,
-                        height=height,
                         thumbnail_path=thumb_path
                     )
                     db.session.add(fm)

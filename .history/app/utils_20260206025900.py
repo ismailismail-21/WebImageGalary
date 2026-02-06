@@ -253,42 +253,36 @@ def _justify_row(row, container_width, target_height, gap, is_last=False):
     return result
 
 def get_folder_images(dataset_path, folder_name, page=1, per_page=30, use_layout=True):
-    """Get images from database for a specific folder with pagination"""
-    images = []
+    """Get images from a specific folder with pagination"""
+    folder_path = os.path.join(dataset_path, folder_name)
     
+    if not os.path.exists(folder_path):
+        return [], 0
+    
+    images = []
     try:
-        # Query database for images in this exact folder (not subfolders)
-        query = FileMetadata.query.filter_by(folder_path=folder_name).order_by(FileMetadata.filename)
-        
-        total = query.count()
-        
-        # Get all for layout calculation, then paginate
-        all_files = query.all()
-        
-        for fm in all_files:
-            # Get dimensions from database or calculate
-            width = fm.width or 300
-            height = fm.height or 300
-            
-            # If dimensions not in DB, try to get from file
-            if not fm.width or not fm.height:
-                full_path = os.path.join(dataset_path, folder_name, fm.filename)
-                if os.path.exists(full_path):
-                    w, h = get_image_dimensions(full_path)
-                    if w and h:
-                        width, height = w, h
-            
-            images.append({
-                'filename': fm.filename,
-                'width': width,
-                'height': height,
-                'aspect_ratio': width / height if height > 0 else 1,
-                'file_size': fm.file_size or 0,
-                'is_video': fm.file_type == 'video',
-                'thumbnail_path': fm.thumbnail_path
-            })
+        for filename in os.listdir(folder_path):
+            if is_supported_image(filename):
+                full_path = os.path.join(folder_path, filename)
+                if os.path.isfile(full_path):
+                    width, height = get_image_dimensions(full_path)
+                    if width and height:
+                        file_size = os.path.getsize(full_path)
+                        images.append({
+                            'filename': filename,
+                            'width': width,
+                            'height': height,
+                            'aspect_ratio': width / height,
+                            'file_size': file_size,
+                            'is_video': is_video(filename)
+                        })
     except Exception as e:
-        print(f"Error getting images from database: {e}")
+        print(f"Error reading folder {folder_path}: {e}")
+    
+    # Sort by filename
+    images.sort(key=lambda x: x['filename'])
+    
+    total = len(images)
     
     # Apply justified layout if requested
     if use_layout and images:

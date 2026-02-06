@@ -9,8 +9,6 @@ import os
 import sys
 import argparse
 from datetime import datetime
-from PIL import Image
-import cv2
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -29,27 +27,6 @@ def get_file_type(filepath):
     elif ext in VIDEO_EXTENSIONS:
         return 'video'
     return 'unknown'
-
-
-def get_dimensions(filepath):
-    """Get width and height of image or video."""
-    ext = os.path.splitext(filepath)[1].lower()
-    
-    try:
-        if ext in VIDEO_EXTENSIONS:
-            # Use OpenCV for videos
-            cap = cv2.VideoCapture(filepath)
-            width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            cap.release()
-            return width, height
-        else:
-            # Use PIL for images
-            with Image.open(filepath) as img:
-                return img.width, img.height
-    except Exception as e:
-        print(f"   Warning: Could not get dimensions for {os.path.basename(filepath)}: {e}")
-        return None, None
 
 
 def find_thumbnail(file_dir, filename):
@@ -226,27 +203,17 @@ Examples:
                         fm.thumbnail_path = thumb_path
                         fm.file_size = os.path.getsize(filepath)
                         fm.file_type = get_file_type(filepath)
-                        # Update dimensions
-                        width, height = get_dimensions(filepath)
-                        if width and height:
-                            fm.width = width
-                            fm.height = height
                         fm.modified_at = datetime.utcnow()
                         updated += 1
                     else:
                         skipped += 1
                 else:
-                    # Get dimensions
-                    width, height = get_dimensions(filepath)
-                    
                     # Create new record
                     fm = FileMetadata(
                         folder_path=folder_path,
                         filename=filename,
                         file_type=get_file_type(filepath),
                         file_size=os.path.getsize(filepath),
-                        width=width,
-                        height=height,
                         thumbnail_path=thumb_path
                     )
                     db.session.add(fm)
