@@ -113,7 +113,7 @@ function prevImage() {
  */
 async function nextImage() {
     if (allImages.length === 0) loadAllImages();
-
+    
     // Check if we're at the last image and need to load more
     if (currentImageIndex >= allImages.length - 1) {
         // Check if there's a loadMoreImages function (on folder pages)
@@ -130,7 +130,7 @@ async function nextImage() {
         // Normal navigation to next image
         currentImageIndex = (currentImageIndex + 1) % allImages.length;
     }
-
+    
     loadImageToLightbox();
 }
 
