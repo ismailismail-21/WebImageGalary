@@ -915,10 +915,10 @@ function zoomImage(direction) {
     } else {
         lightboxImage.style.transform = `scale(${newScale}) translate(${currentX}px, ${currentY}px)`;
     }
-
+    
     // Update global zoom level for persistence
-    if (typeof window.currentZoomLevel !== 'undefined') {
-        window.currentZoomLevel = newScale;
+    if (typeof currentZoomLevel !== 'undefined') {
+        currentZoomLevel = newScale;
     }
 }
 
@@ -965,10 +965,10 @@ function zoomImageAtPoint(direction, mouseX, mouseY, imgWidth, imgHeight) {
         lightboxImage.style.transform = `scale(${newScale}) translate(${newX}px, ${newY}px)`;
         lightboxImage.style.cursor = 'grab';
     }
-
+    
     // Update global zoom level for persistence
-    if (typeof window.currentZoomLevel !== 'undefined') {
-        window.currentZoomLevel = newScale;
+    if (typeof currentZoomLevel !== 'undefined') {
+        currentZoomLevel = newScale;
     }
 }
 

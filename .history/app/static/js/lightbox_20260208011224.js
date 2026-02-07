@@ -6,7 +6,7 @@ let currentImageIndex = 0;
 let allImages = [];
 let slideshowInterval = null;
 let slideshowDelay = 1500;
-window.currentZoomLevel = 1; // Track zoom level across images (global)
+let currentZoomLevel = 1; // Track zoom level across images
 
 /**
  * Load all images from grid for navigation
@@ -37,7 +37,7 @@ function openLightbox(imgElement) {
     currentImageIndex = index;
 
     // Reset zoom level when first opening lightbox
-    window.currentZoomLevel = 1;
+    currentZoomLevel = 1;
 
     // Start with opacity 0 for fade-in effect
     lightboxImage.style.opacity = '0';
@@ -150,15 +150,6 @@ function loadImageToLightbox() {
     const lightboxVideo = document.getElementById('lightboxVideo');
     const isVideo = gridItem.dataset.isVideo === 'true';
 
-    // Save current zoom level before switching images
-    if (lightboxImage.style.display !== 'none') {
-        const currentTransform = lightboxImage.style.transform || 'scale(1)';
-        const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
-        if (scaleMatch) {
-            window.currentZoomLevel = parseFloat(scaleMatch[1]);
-        }
-    }
-
     // Add transition class for smooth fade
     lightboxImage.classList.add('transitioning');
     lightboxVideo.classList.add('transitioning');
@@ -188,8 +179,8 @@ function loadImageToLightbox() {
             if (img) {
                 lightboxImage.src = img.dataset.fullSrc || img.src;
                 // Apply current zoom level instead of resetting to 1
-                lightboxImage.style.transform = `scale(${window.currentZoomLevel}) translate(0px, 0px)`;
-                lightboxImage.style.cursor = window.currentZoomLevel > 1 ? 'grab' : 'zoom-in';
+                lightboxImage.style.transform = `scale(${currentZoomLevel}) translate(0px, 0px)`;
+                lightboxImage.style.cursor = currentZoomLevel > 1 ? 'grab' : 'zoom-in';
             }
         }
 
@@ -362,9 +353,6 @@ function toggleZoom() {
 
     lightboxImage.style.transform = `scale(${newScale})`;
     lightboxImage.style.cursor = newScale > 1 ? 'zoom-out' : 'zoom-in';
-
-    // Update global zoom level for persistence
-    window.currentZoomLevel = newScale;
 }
 
 // ============================================================================

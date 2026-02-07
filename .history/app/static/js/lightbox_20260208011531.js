@@ -149,7 +149,7 @@ function loadImageToLightbox() {
     const lightboxImage = document.getElementById('lightboxImage');
     const lightboxVideo = document.getElementById('lightboxVideo');
     const isVideo = gridItem.dataset.isVideo === 'true';
-
+    
     // Save current zoom level before switching images
     if (lightboxImage.style.display !== 'none') {
         const currentTransform = lightboxImage.style.transform || 'scale(1)';
@@ -362,7 +362,7 @@ function toggleZoom() {
 
     lightboxImage.style.transform = `scale(${newScale})`;
     lightboxImage.style.cursor = newScale > 1 ? 'zoom-out' : 'zoom-in';
-
+    
     // Update global zoom level for persistence
     window.currentZoomLevel = newScale;
 }
