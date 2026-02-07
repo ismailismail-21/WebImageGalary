@@ -29,7 +29,6 @@ class FileMetadata(db.Model):
     height = db.Column(db.Integer, nullable=True)
     duration = db.Column(db.Float, nullable=True)  # for videos/GIFs in seconds
     fps = db.Column(db.Float, nullable=True)  # for videos
-    thumbnail_path = db.Column(db.String(500), nullable=True)  # relative path to thumbnail
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     modified_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
@@ -51,7 +50,6 @@ class FileMetadata(db.Model):
             'height': self.height,
             'duration': self.duration,
             'fps': self.fps,
-            'thumbnail_path': self.thumbnail_path,
             'aspect_ratio': self.width / self.height if self.width and self.height and self.height > 0 else 1,
             'is_video': self.file_type == 'video',
             'created_at': self.created_at.isoformat(),
