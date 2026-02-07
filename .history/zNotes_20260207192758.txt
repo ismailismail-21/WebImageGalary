@@ -1,0 +1,6 @@
+- fix the thumbnail generator when the forlder names contain spaces
+- the webp does not converted.
+- when the thumail did not convert or not found serve the original image
+
+-remove unwantand functions in app
+- und

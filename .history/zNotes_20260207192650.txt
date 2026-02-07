@@ -1,0 +1,2 @@
+- fix the thumbnail generator when the forlder names contain spaces
+- the web

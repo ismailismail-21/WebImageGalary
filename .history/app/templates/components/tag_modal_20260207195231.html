@@ -1,0 +1,28 @@
+<!-- Tag Modal Component -->
+<div id="tagModal" class="tag-modal">
+    <div class="tag-modal-content">
+        <div class="tag-modal-header">
+            <h2>Manage Tags</h2>
+            <button class="tag-modal-close" onclick="closeTagModal()">✕</button>
+        </div>
+
+        <div class="tag-modal-body">
+            <!-- Existing Tags -->
+            <div class="tag-section">
+                <h3>Available Tags</h3>
+                <div id="existingTags"></div>
+            </div>
+
+            <!-- Create New Tag -->
+            <div class="new-tag-form">
+                <h3>Create New Tag</h3>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="newTagInput" placeholder="Tag name" style="flex: 1; padding: 8px;" />
+                    <input type="color" id="newTagColor" value="#3498db" style="width: 50px;" />
+                    <button onclick="createNewTag()"
+                        style="padding: 8px 16px; background-color: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

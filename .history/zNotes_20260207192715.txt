@@ -1,0 +1,3 @@
+- fix the thumbnail generator when the forlder names contain spaces
+- the webp does not converted.
+- when the thumail did not convert 

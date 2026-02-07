@@ -1,0 +1,30 @@
+<!-- Lightbox Component -->
+<div id="lightbox" class="lightbox">
+    <div class="lightbox-container">
+        <img id="lightboxImage" src="" alt="" class="lightbox-image">
+        <video id="lightboxVideo" class="lightbox-image" controls loop muted playsinline webkit-playsinline
+            crossorigin="anonymous" style="display: none;">
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <div class="lightbox-info">
+            <span id="lightboxCounter">1 / 1</span>
+        </div>
+
+        <div class="lightbox-controls">
+            <button class="lightbox-fullscreen-btn" id="lightboxFullscreenBtn"
+                onclick="event.stopPropagation(); toggleFullscreen()" title="Toggle fullscreen"></button>
+            <button class="lightbox-slideshow-btn" id="lightboxSlideshowBtn"
+                onclick="event.stopPropagation(); toggleSlideshow()" title="Slideshow (Space)"></button>
+            <button class="lightbox-favorite-btn" id="lightboxFavoriteBtn"
+                onclick="event.stopPropagation(); toggleLightboxFavorite()" title="Favorite">♡</button>
+            <button class="lightbox-delete-btn" id="lightboxDeleteBtn"
+                onclick="event.stopPropagation(); deleteLightboxImage()" title="Delete">✕</button>
+            <button class="lightbox-close" onclick="closeLightbox()" title="Close">╳</button>
+        </div>
+<!-- 
+        <button class="lightbox-nav lightbox-prev" onclick="prevImage()">‹</button>
+        <button class="lightbox-nav lightbox-next" onclick="nextImage()">›</button> -->
+    </div>
+</div>

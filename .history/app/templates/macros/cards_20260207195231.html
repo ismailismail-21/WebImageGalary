@@ -1,0 +1,112 @@
+{# Image/Video Grid Item Macro #}
+{% macro image_card(folder_name, image, show_tags=true) %}
+<div class="grid-item" data-filename="{{ image.filename }}" data-folder="{{ folder_name }}"
+    data-is-video="{{ 'true' if image.get('is_video') else 'false' }}"
+    style="width: {{ image.get('calc_width', 200) }}px; height: {{ image.get('calc_height', 200) }}px;">
+
+    {% if image.get('is_video') %}
+    <video class="gallery-image gallery-video" data-width="{{ image.width }}" data-height="{{ image.height }}"
+        preload="metadata" onclick="openLightbox(this)" loop muted playsinline webkit-playsinline
+        crossorigin="anonymous">
+        <source src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}" type="video/mp4">
+    </video>
+    <div class="video-play-icon">▶</div>
+    <div class="video-duration" id="duration-{{ image.filename }}">0:00</div>
+    {% else %}
+    <img src="/api/thumbnail/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
+        data-full-src="/api/image/{{ folder_name|urlencode_path }}/{{ image.filename|urlencode_path }}"
+        alt="{{ image.filename }}" class="gallery-image" data-width="{{ image.width }}" data-height="{{ image.height }}"
+        loading="lazy" onclick="openLightbox(this)" crossorigin="anonymous">
+    {% endif %}
+
+    <!-- Image Controls -->
+    <div class="image-controls">
+        <button class="heart-btn"
+            onclick="event.stopPropagation(); toggleImageFavorite('{{ folder_name }}', '{{ image.filename }}', this)"
+            title="Add to favorites">♡</button>
+        <button class="delete-btn"
+            onclick="event.stopPropagation(); deleteImage('{{ folder_name }}', '{{ image.filename }}', this)"
+            title="Delete image">🗑️</button>
+    </div>
+
+    <!-- Tag Dropdown -->
+    <div class="tag-dropdown" id="tag-dropdown-{{ image.filename }}" style="display: none;">
+        <div class="tag-dropdown-content" id="tag-list-{{ image.filename }}"></div>
+    </div>
+
+    <!-- Tag Circle Button -->
+    <button class="tag-circle-btn"
+        onclick="event.stopPropagation(); toggleTagDropdown('{{ folder_name }}', '{{ image.filename }}')"
+        title="Manage tags">+</button>
+
+    <!-- Image Tags Display -->
+    {% if show_tags %}
+    <div class="image-tags" id="tags-{{ image.filename }}"></div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# Favorite Card Macro (for home page) #}
+{% macro favorite_card(image) %}
+<div class="favorite-card grid-item" data-folder="{{ image['folder'] }}" data-filename="{{ image['filename'] }}"
+    data-is-video="false" id="fav-{{ image['folder'] }}-{{ image['filename'] }}" style="cursor: pointer;">
+
+    <img src="/api/thumbnail/{{ image['folder']|urlencode_path }}/{{ image['filename']|urlencode_path }}"
+        data-full-src="/api/image/{{ image['folder']|urlencode_path }}/{{ image['filename']|urlencode_path }}"
+        loading="lazy" alt="{{ image['filename'] }}" class="gallery-image" data-width="{{ image.width }}"
+        data-height="{{ image.height }}" onclick="openLightbox(this)" style="cursor: pointer;">
+
+    <!-- Image Controls -->
+    <div class="image-controls">
+        <button class="heart-btn active"
+            onclick="event.stopPropagation(); toggleImageFavorite('{{ image['folder'] }}', '{{ image['filename'] }}', this)"
+            title="Remove from favorites">♥</button>
+        <button class="delete-btn"
+            onclick="event.stopPropagation(); deleteImage('{{ image['folder'] }}', '{{ image['filename'] }}', this)"
+            title="Delete image">🗑️</button>
+    </div>
+
+    <!-- Tag Dropdown -->
+    <div class="tag-dropdown" id="tag-dropdown-{{ image['filename'] }}" style="display: none;">
+        <div class="tag-dropdown-content" id="tag-list-{{ image['filename'] }}"></div>
+    </div>
+
+    <!-- Tag Circle Button -->
+    <button class="tag-circle-btn"
+        onclick="event.stopPropagation(); toggleTagDropdown('{{ image['folder'] }}', '{{ image['filename'] }}')"
+        title="Manage tags">+</button>
+
+    <!-- Image Tags Display -->
+    <div class="image-tags" id="tags-{{ image['filename'] }}"></div>
+</div>
+{% endmacro %}
+
+
+{# Subfolder Card Macro #}
+{% macro subfolder_card(subfolder) %}
+<a href="/folder/{{ subfolder.path|urlencode_path }}" class="subfolder-card">
+    <div class="subfolder-thumbnail">
+        {% if subfolder.thumbnail %}
+        <img src="/api/thumbnail/{{ subfolder.thumbnail|urlencode_path }}" alt="{{ subfolder.name }}"
+            class="subfolder-thumb-img" loading="lazy">
+        {% else %}
+        <div class="subfolder-icon-fallback">
+            {% if subfolder.has_subfolders %}📁{% else %}🖼️{% endif %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="subfolder-overlay">
+        <div class="subfolder-name">{{ subfolder.name }}</div>
+        <div class="subfolder-info">
+            {% if subfolder.has_subfolders %}
+            <span class="subfolder-meta">{{ subfolder.subfolder_count }} folder{{ 's' if subfolder.subfolder_count > 1
+                else '' }}</span>
+            {% endif %}
+            {% if subfolder.count > 0 %}
+            <span class="subfolder-meta">{{ subfolder.count }} image{{ 's' if subfolder.count > 1 else '' }}</span>
+            {% endif %}
+        </div>
+    </div>
+</a>
+{% endmacro %}
