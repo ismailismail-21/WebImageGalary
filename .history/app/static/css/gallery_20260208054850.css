@@ -1406,7 +1406,7 @@
 }
 
 /* Mobile/touch-specific control placement: put image controls at top for easier thumb access */
- /*@media (hover: none) and (pointer: coarse) {
+ /@media (hover: none) and (pointer: coarse) {
 
     .grid-item .image-controls,
     .grid-item .tag-circle-btn,
@@ -1439,4 +1439,4 @@
         left: 8px !important;
         bottom: auto !important;
     }
-} */
+} 
