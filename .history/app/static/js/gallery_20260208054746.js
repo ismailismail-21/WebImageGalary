@@ -594,12 +594,12 @@ function setupLightboxTouchNavigation() {
 
     const handleTouchMove = (e) => {
         if (!isTouching) return;
-
+        
         const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
         const deltaX = Math.abs(currentX - startX);
         const deltaY = Math.abs(currentY - startY);
-
+        
         // If user has moved enough, mark as moved and prevent default to stop scrolling
         if (deltaX > 10 || deltaY > 10) {
             hasMoved = true;
@@ -612,7 +612,7 @@ function setupLightboxTouchNavigation() {
             isTouching = false;
             return;
         }
-
+        
         isTouching = false;
 
         const endX = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0].clientX : startX;
