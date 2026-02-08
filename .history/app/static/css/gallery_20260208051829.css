@@ -1070,22 +1070,25 @@
 }
 
 /* Gallery Grid - Smart Row-based Layout */
-.gallery-container {
-    margin-bottom: 40px;
+\n.gallery-container {
+    \n margin-bottom: 40px;
+    \n
 }
 
-.images-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-start;
+\n\n.images-grid {
+    \n display: flex;
+    \n flex-wrap: wrap;
+    \n gap: 8px;
+    \n justify-content: flex-start;
+    \n
 }
 
-.grid-row {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: 0;
+\n\n.grid-row {
+    \n display: flex;
+    \n gap: 8px;
+    \n width: 100%;
+    \n margin-bottom: 0;
+    \n
 }
 
 .favorite-btn-image:hover {

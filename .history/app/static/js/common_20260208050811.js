@@ -6,22 +6,22 @@
 // NAVBAR AUTO-HIDE ON SCROLL
 // ============================================================================
 
-(function () {
+(function() {
     let lastScrollTop = 0;
     let scrollTimer = null;
     const navbar = document.querySelector('.navbar');
-
+    
     if (navbar) {
-        window.addEventListener('scroll', function () {
+        window.addEventListener('scroll', function() {
             // Clear previous timer
             if (scrollTimer) {
                 clearTimeout(scrollTimer);
             }
-
+            
             // Debounce scroll event for better performance
-            scrollTimer = setTimeout(function () {
+            scrollTimer = setTimeout(function() {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
+                
                 // If scrolled more than 100px
                 if (scrollTop > 100) {
                     if (scrollTop > lastScrollTop) {
@@ -35,7 +35,7 @@
                     // At top of page - always show navbar
                     navbar.classList.remove('navbar-hidden');
                 }
-
+                
                 lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
             }, 10); // 10ms debounce
         }, { passive: true });
@@ -175,7 +175,7 @@ function loadImageTags(folder, filename) {
             const tagsContainer = document.getElementById(`tags-${filename}`);
             if (tagsContainer && imageTags && imageTags.length > 0) {
                 const tagHtml = imageTags
-                    .map(it => `<span class="tag-badge" style="color: ${it.tag.color}">${it.tag.name}</span>`)
+                    .map(it => `<span class="tag-badge" style="background-color: ${it.tag.color}">${it.tag.name}</span>`)
                     .join('');
                 tagsContainer.innerHTML = tagHtml;
             } else if (tagsContainer) {

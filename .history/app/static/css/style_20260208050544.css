@@ -6,18 +6,23 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: #0a0a0a;
+    background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
 }
 
 /* Navbar */
 .navbar {
-    background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3), 0 0 40px rgba(118, 75, 162, 0.2);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3);
     position: sticky;
     top: 0;
     z-index: 100;
-}
+    backdrop-filter: blur(10px);
+}   
+
 
 .navbar-container {
     max-width: 1400px;
@@ -34,8 +39,12 @@ body {
     font-size: 1.5em;
     font-weight: bold;
     text-decoration: none;
-    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     white-space: nowrap;
+    text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
 }
 
 /* Folders Dropdown in Navbar */
@@ -51,10 +60,10 @@ body {
     padding: 8px 35px 8px 15px;
     font-size: 0.95em;
     font-weight: 500;
-    color: #333;
-    background-color: #f8f9fa;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
+    color: #e0e0e0;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     outline: none;
@@ -67,19 +76,21 @@ body {
 
 .folder-dropdown:hover {
     border-color: #667eea;
-    background-color: #f0f3ff;
+    background-color: rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
 }
 
 .folder-dropdown:focus {
     border-color: #667eea;
-    background-color: white;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background-color: rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 0 20px rgba(102, 126, 234, 0.2);
 }
 
 .folder-dropdown option {
     padding: 10px;
     font-size: 1em;
-    background-color: white;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
 }
 
 .navbar-menu {
@@ -90,16 +101,17 @@ body {
 
 .nav-link {
     text-decoration: none;
-    color: #666;
+    color: #b0b0b0;
     font-size: 1em;
     border: none;
     background: none;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .nav-link:hover {
     color: #667eea;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
 .favorites-dropdown {
@@ -108,29 +120,31 @@ body {
 
 .favorites-btn {
     padding: 8px 12px;
-    border-radius: 5px;
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
 }
 
 .favorites-btn:hover {
-    background-color: #e0e0e0;
+    background: rgba(102, 126, 234, 0.2);
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
 }
 
 .favorites-menu {
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(102, 126, 234, 0.2);
     min-width: 250px;
     max-height: 400px;
     overflow-y: auto;
     display: none;
     margin-top: 10px;
     z-index: 1000;
+    backdrop-filter: blur(10px);
 }
 
 .favorites-dropdown:hover .favorites-menu,
@@ -141,10 +155,10 @@ body {
 .favorite-item {
     display: block;
     padding: 12px 15px;
-    color: #333;
+    color: #e0e0e0;
     text-decoration: none;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
 }
 
 .favorite-item:last-child {
@@ -152,21 +166,22 @@ body {
 }
 
 .favorite-item:hover {
-    background-color: #f9f9f9;
+    background: rgba(102, 126, 234, 0.2);
     color: #667eea;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
 }
 
 .favorites-empty,
 .favorites-loading {
     padding: 15px;
     text-align: center;
-    color: #999;
+    color: #666;
 }
 
 /* Folders Navigation - Second navbar */
 .folders-nav {
-    background-color: #f0f0f0;
-    border-bottom: 2px solid #e0e0e0;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-bottom: 2px solid rgba(102, 126, 234, 0.3);
     overflow-x: auto;
     white-space: nowrap;
 }
@@ -186,7 +201,7 @@ body {
     display: inline-block;
     padding: 12px 20px;
     text-decoration: none;
-    color: #666;
+    color: #b0b0b0;
     font-size: 0.9em;
     transition: all 0.2s ease;
     border-bottom: 3px solid transparent;
@@ -194,22 +209,24 @@ body {
 }
 
 .folder-nav-link:hover {
-    background-color: #e8e8e8;
+    background: rgba(102, 126, 234, 0.1);
     color: #667eea;
+    text-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
 }
 
 .folder-nav-link.active {
     color: #667eea;
     font-weight: 600;
     border-bottom-color: #667eea;
-    background-color: white;
+    background: rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
 }
 
 /* Breadcrumb Navigation - Third navbar */
 .breadcrumb-nav {
-    background-color: #f9f9f9;
+    background: rgba(102, 126, 234, 0.05);
     padding: 12px 20px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
     display: flex;
     gap: 5px;
     flex-wrap: wrap;
@@ -220,34 +237,37 @@ body {
 }
 
 .breadcrumb-item {
-    color: #666;
+    color: #888;
 }
 
 .breadcrumb-item a {
     color: #667eea;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .breadcrumb-item a:hover {
     color: #764ba2;
     text-decoration: underline;
+    text-shadow: 0 0 10px rgba(118, 75, 162, 0.5);
 }
 
 .hide-tags-btn {
-    background-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
     padding: 6px 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.85em;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
 }
 
 .hide-tags-btn:hover {
-    background-color: #764ba2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
 }
 
 /* Main container */
@@ -260,11 +280,12 @@ body {
 
 /* Footer */
 .footer {
-    background-color: #333;
-    color: white;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    color: #888;
     text-align: center;
     padding: 20px;
     margin-top: 40px;
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
 }
 
 .footer p {
@@ -285,13 +306,13 @@ body {
     .navbar-brand a {
         font-size: 1.2em;
     }
-    
+
     .folders-dropdown-container {
         order: 3;
         flex: 1 1 100%;
         max-width: 100%;
     }
-    
+
     .folder-dropdown {
         font-size: 0.9em;
         padding: 6px 30px 6px 12px;

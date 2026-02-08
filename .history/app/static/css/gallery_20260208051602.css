@@ -556,6 +556,7 @@
     flex-wrap: wrap;
     gap: 4px;
     padding: 8px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
     justify-content: center;
     align-items: center;
     min-height: 30px;
@@ -564,7 +565,7 @@
 
 .tag-badge {
     color: white;
-    padding: 2px 2px;
+    padding: 4px 10px;
  
     font-size: 0.75em;
     font-weight: 500;
@@ -573,6 +574,7 @@
     overflow: hidden;
     max-width: 100px;
     opacity: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Tag Modal */
@@ -1070,22 +1072,25 @@
 }
 
 /* Gallery Grid - Smart Row-based Layout */
-.gallery-container {
-    margin-bottom: 40px;
+\n.gallery-container {
+    \n margin-bottom: 40px;
+    \n
 }
 
-.images-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-start;
+\n\n.images-grid {
+    \n display: flex;
+    \n flex-wrap: wrap;
+    \n gap: 8px;
+    \n justify-content: flex-start;
+    \n
 }
 
-.grid-row {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    margin-bottom: 0;
+\n\n.grid-row {
+    \n display: flex;
+    \n gap: 8px;
+    \n width: 100%;
+    \n margin-bottom: 0;
+    \n
 }
 
 .favorite-btn-image:hover {
@@ -1406,7 +1411,7 @@
 }
 
 /* Mobile/touch-specific control placement: put image controls at top for easier thumb access */
-/* @media (hover: none) and (pointer: coarse) {
+@media (hover: none) and (pointer: coarse) {
 
     .grid-item .image-controls,
     .grid-item .tag-circle-btn,
@@ -1439,4 +1444,4 @@
         left: 8px !important;
         bottom: auto !important;
     }
-} */
+}
