@@ -52,8 +52,7 @@
         {% endif %}
         <h1>{{ breadcrumbs[-1].name if breadcrumbs else folder_name }}</h1>
         <p class="image-count">
-            {% if subfolders %}{{ subfolders|length }} subfolder{{ 's' if subfolders|length > 1 else '' }}{% if
-            total_images > 0 %}, {% endif %}{% endif %}
+            {% if subfolders %}{{ subfolders|length }} subfolder{{ 's' if subfolders|length > 1 else '' }}{% if total_images > 0 %}, {% endif %}{% endif %}
             {% if total_images > 0 %}{{ total_images }} image{{ 's' if total_images > 1 else '' }}{% endif %}
         </p>
     </div>
@@ -119,9 +118,9 @@
     let currentSubfolderPage = 1;
     let isLoadingImages = false;
     let isLoadingSubfolders = false;
-    let hasMoreImages = {{ 'true' if images| length < total_images else 'false' }};
+    let hasMoreImages = {{ 'true' if images|length < total_images else 'false' }};
     let totalImages = {{ total_images }};
-    let loadedImages = {{ images| length }};
+    let loadedImages = {{ images|length }};
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
@@ -145,22 +144,6 @@
             el.style.display = tagsVisible ? 'flex' : 'none';
         });
         document.getElementById('hideTagsBtn').textContent = tagsVisible ? 'Hide Tags' : 'Show Tags';
-    }
-
-    function toggleShuffle() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentShuffle = urlParams.get('shuffle') === 'true';
-
-        // Toggle shuffle state
-        if (currentShuffle) {
-            urlParams.delete('shuffle');
-        } else {
-            urlParams.set('shuffle', 'true');
-        }
-
-        // Reload page with new shuffle state
-        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
-        window.location.href = newUrl;
     }
 
     function setupIntersectionObserver() {
@@ -201,10 +184,7 @@
 
         try {
             currentImagePage++;
-            // Get shuffle state from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const shuffleParam = urlParams.get('shuffle') === 'true' ? '&shuffle=true' : '';
-            const response = await fetch(`/api/images/${encodeURIComponent(folderName)}?page=${currentImagePage}&per_page=50${shuffleParam}`);
+            const response = await fetch(`/api/images/${encodeURIComponent(folderName)}?page=${currentImagePage}&per_page=50`);
             const data = await response.json();
 
             if (data.images && data.images.length > 0) {

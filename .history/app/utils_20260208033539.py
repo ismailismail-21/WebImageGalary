@@ -339,10 +339,10 @@ def get_breadcrumb_path(folder_path):
     
     return breadcrumbs
 
-def get_folder_files_cached(dataset_path, folder_name, page=1, per_page=30, shuffle=False):
+def get_folder_files_cached(dataset_path, folder_name, page=1, per_page=30):
     """Get files with pagination - uses database for fast retrieval"""
     try:
-        return get_folder_images(dataset_path, folder_name, page, per_page, use_layout=True, shuffle=shuffle)
+        return get_folder_images(dataset_path, folder_name, page, per_page, use_layout=True)
     except Exception as e:
         print(f"Error in get_folder_files_cached: {e}")
         import traceback
