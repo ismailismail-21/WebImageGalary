@@ -307,10 +307,7 @@ function setupEventListeners() {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            console.log('Zoom at point:', mouseX, mouseY, 'Image size:', lightboxImage.offsetWidth, lightboxImage.offsetHeight);
-
-            // Use offsetWidth/Height which gives actual rendered size
-            zoomImageAtPoint(e.deltaY < 0 ? 'in' : 'out', mouseX, mouseY, lightboxImage.offsetWidth, lightboxImage.offsetHeight);
+            zoomImageAtPoint(e.deltaY < 0 ? 'in' : 'out', mouseX, mouseY, rect.width, rect.height);
         } else if (isInLightbox) {
             // Wheel to navigate (but add threshold to avoid accidental navigation)
             if (Math.abs(e.deltaY) > 5) {
@@ -610,26 +607,22 @@ function setupLightboxTouchNavigation() {
         const horizThreshold = 50; // px
         const vertThreshold = 50; // px
 
-        // Support both horizontal AND vertical swipes for all media
-        // Vertical: swipe UP = previous, swipe DOWN = next
-        // Horizontal: swipe LEFT = next, swipe RIGHT = previous
-
-        if (absY > absX) {
-            // Vertical swipe dominates
+        if (isVideo) {
+            // vertical navigation for videos
             if (deltaY > vertThreshold) {
-                // swipe UP -> previous
-                prevImage();
-            } else if (deltaY < -vertThreshold) {
-                // swipe DOWN -> next
+                // swipe up -> next video
                 nextImage();
+            } else if (deltaY < -vertThreshold) {
+                // swipe down -> previous video
+                prevImage();
             }
         } else {
-            // Horizontal swipe dominates
-            if (deltaX > horizThreshold) {
-                // swipe LEFT -> next
+            // horizontal navigation for images
+            if (deltaX > horizThreshold && absX > absY) {
+                // swipe left -> next image
                 nextImage();
-            } else if (deltaX < -horizThreshold) {
-                // swipe RIGHT -> previous
+            } else if (deltaX < -horizThreshold && absX > absY) {
+                // swipe right -> previous image
                 prevImage();
             }
         }
@@ -955,19 +948,21 @@ function zoomImageAtPoint(direction, mouseX, mouseY, imgWidth, imgHeight) {
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
     } else {
-        // Calculate the point in the image that was under the mouse
-        // This keeps that point under the mouse after zooming
-        const scaleChange = newScale / currentScale;
-
-        // Calculate mouse position relative to center
-        const centerX = imgWidth / 2;
-        const centerY = imgHeight / 2;
-        const offsetX = mouseX - centerX;
-        const offsetY = mouseY - centerY;
-
-        // Adjust translation to keep the point under the mouse cursor
-        const newX = currentX - (offsetX * (scaleChange - 1));
-        const newY = currentY - (offsetY * (scaleChange - 1));
+        // Calculate zoom factor change
+        const scaleFactor = newScale / currentScale;
+        
+        // Calculate the point in image coordinates (relative to center)
+        const imageCenterX = imgWidth / 2;
+        const imageCenterY = imgHeight / 2;
+        
+        // Point relative to image center
+        const pointX = mouseX - imageCenterX;
+        const pointY = mouseY - imageCenterY;
+        
+        // New translation to keep the point under cursor
+        // When we zoom, we need to adjust translation so the zoom point stays in place
+        const newX = (currentX - pointX) * scaleFactor + pointX;
+        const newY = (currentY - pointY) * scaleFactor + pointY;
 
         lightboxImage.style.transform = `scale(${newScale}) translate(${newX}px, ${newY}px)`;
         lightboxImage.style.cursor = 'grab';
@@ -992,23 +987,17 @@ function setupImagePanning() {
 
     if (!lightbox || !lightboxImage) return;
 
-    // Track if we were panning to prevent click events
-    let wasPanning = false;
-
-    // Start panning on MIDDLE mouse button down when zoomed
+    // Start panning on left mouse button down when zoomed
     lightboxImage.addEventListener('mousedown', (e) => {
-        wasPanning = false;
-
-        // Middle mouse button (button === 1)
-        if (e.button === 1) {
-            e.preventDefault();
-
+        // Left mouse button (button === 0)
+        if (e.button === 0) {
             const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
             const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
             const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
             // Only allow panning when zoomed in
             if (currentScale > 1) {
+                e.preventDefault();
                 isPanning = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -1026,7 +1015,6 @@ function setupImagePanning() {
     lightboxImage.addEventListener('mousemove', (e) => {
         if (!isPanning) return;
 
-        wasPanning = true;
         e.preventDefault();
 
         const deltaX = e.clientX - startX;
@@ -1048,7 +1036,12 @@ function setupImagePanning() {
             isPanning = false;
             const lightboxImage = document.getElementById('lightboxImage');
             if (lightboxImage) {
-                lightboxImage.style.cursor = '';
+                const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
+                const scaleMatch = currentTransform.match(/scale\([\d.]+\)/);
+                const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+                
+                // Return to grab cursor if still zoomed
+                lightboxImage.style.cursor = currentScale > 1 ? 'grab' : '';
             }
         }
     };
@@ -1080,15 +1073,6 @@ function setupImagePanning() {
             lightboxImage.style.cursor = '';
         }
     });
-
-    // Prevent click event if we were panning (to avoid unintended actions)
-    lightboxImage.addEventListener('click', (e) => {
-        if (wasPanning) {
-            e.preventDefault();
-            e.stopPropagation();
-            wasPanning = false;
-        }
-    }, true);
 }
 
 // Call setup when DOM is loaded

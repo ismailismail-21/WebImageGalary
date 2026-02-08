@@ -613,7 +613,7 @@ function setupLightboxTouchNavigation() {
         // Support both horizontal AND vertical swipes for all media
         // Vertical: swipe UP = previous, swipe DOWN = next
         // Horizontal: swipe LEFT = next, swipe RIGHT = previous
-
+        
         if (absY > absX) {
             // Vertical swipe dominates
             if (deltaY > vertThreshold) {

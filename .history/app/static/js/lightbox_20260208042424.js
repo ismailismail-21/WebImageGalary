@@ -198,20 +198,20 @@ function loadImageToLightbox() {
         setTimeout(() => {
             lightboxImage.style.opacity = '1';
             lightboxVideo.style.opacity = '1';
+        
+        // Listen for mute state changes
+        if (isVideo) {
+            lightboxVideo.onvolumechange = () => {
+                window.videoMuted = lightboxVideo.muted;
+            };
+        }
+                lightboxVideo.classList.remove('transitioning');
+            }, 400);
+        }, 50);
+    }, 200);
 
-            // Listen for mute state changes
-            if (isVideo) {
-                lightboxVideo.onvolumechange = () => {
-                    window.videoMuted = lightboxVideo.muted;
-                };
-            }
-            lightboxVideo.classList.remove('transitioning');
-        }, 400);
-    }, 50);
-}, 200);
-
-updateLightboxFavorite();
-updateLightboxCounter();
+    updateLightboxFavorite();
+    updateLightboxCounter();
 }
 
 /**

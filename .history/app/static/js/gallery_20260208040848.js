@@ -307,8 +307,6 @@ function setupEventListeners() {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            console.log('Zoom at point:', mouseX, mouseY, 'Image size:', lightboxImage.offsetWidth, lightboxImage.offsetHeight);
-
             // Use offsetWidth/Height which gives actual rendered size
             zoomImageAtPoint(e.deltaY < 0 ? 'in' : 'out', mouseX, mouseY, lightboxImage.offsetWidth, lightboxImage.offsetHeight);
         } else if (isInLightbox) {
@@ -610,26 +608,22 @@ function setupLightboxTouchNavigation() {
         const horizThreshold = 50; // px
         const vertThreshold = 50; // px
 
-        // Support both horizontal AND vertical swipes for all media
-        // Vertical: swipe UP = previous, swipe DOWN = next
-        // Horizontal: swipe LEFT = next, swipe RIGHT = previous
-
-        if (absY > absX) {
-            // Vertical swipe dominates
+        if (isVideo) {
+            // vertical navigation for videos
             if (deltaY > vertThreshold) {
-                // swipe UP -> previous
-                prevImage();
-            } else if (deltaY < -vertThreshold) {
-                // swipe DOWN -> next
+                // swipe up -> next video
                 nextImage();
+            } else if (deltaY < -vertThreshold) {
+                // swipe down -> previous video
+                prevImage();
             }
         } else {
-            // Horizontal swipe dominates
-            if (deltaX > horizThreshold) {
-                // swipe LEFT -> next
+            // horizontal navigation for images
+            if (deltaX > horizThreshold && absX > absY) {
+                // swipe left -> next image
                 nextImage();
-            } else if (deltaX < -horizThreshold) {
-                // swipe RIGHT -> previous
+            } else if (deltaX < -horizThreshold && absX > absY) {
+                // swipe right -> previous image
                 prevImage();
             }
         }
@@ -955,19 +949,32 @@ function zoomImageAtPoint(direction, mouseX, mouseY, imgWidth, imgHeight) {
         lightboxImage.style.transform = 'scale(1) translate(0px, 0px)';
         lightboxImage.style.cursor = '';
     } else {
-        // Calculate the point in the image that was under the mouse
-        // This keeps that point under the mouse after zooming
-        const scaleChange = newScale / currentScale;
-
-        // Calculate mouse position relative to center
+        // Calculate the mouse position relative to the image center
         const centerX = imgWidth / 2;
         const centerY = imgHeight / 2;
+        
+        // Distance from center to mouse (in screen pixels)
         const offsetX = mouseX - centerX;
         const offsetY = mouseY - centerY;
-
-        // Adjust translation to keep the point under the mouse cursor
-        const newX = currentX - (offsetX * (scaleChange - 1));
-        const newY = currentY - (offsetY * (scaleChange - 1));
+        
+        // The transform is: scale(S) translate(X, Y)
+        // This means: translate first (in original coords), then scale
+        // So translate values are in pre-scaled coordinates
+        
+        // To zoom to a point:
+        // 1. Current point position in screen space = center + (currentX * currentScale + offsetX) 
+        // 2. We want: center + (newX * newScale + offsetX) = same position
+        // 3. Therefore: newX * newScale = currentX * currentScale
+        // 4. newX = currentX * currentScale / newScale
+        
+        // But we also need to adjust for the mouse position:
+        // The point at offsetX,offsetY should stay fixed
+        // In scaled space: pointInScaledSpace = currentX + offsetX / currentScale
+        // After zoom: newX + offsetX / newScale should equal the same screen position
+        
+        const scaleFactor = newScale / currentScale;
+        const newX = currentX + offsetX * (1 / currentScale - 1 / newScale);
+        const newY = currentY + offsetY * (1 / currentScale - 1 / newScale);
 
         lightboxImage.style.transform = `scale(${newScale}) translate(${newX}px, ${newY}px)`;
         lightboxImage.style.cursor = 'grab';
@@ -995,20 +1002,22 @@ function setupImagePanning() {
     // Track if we were panning to prevent click events
     let wasPanning = false;
 
-    // Start panning on MIDDLE mouse button down when zoomed
+    // Start panning on left mouse button down when zoomed
     lightboxImage.addEventListener('mousedown', (e) => {
         wasPanning = false;
-
-        // Middle mouse button (button === 1)
-        if (e.button === 1) {
-            e.preventDefault();
-
+        
+        // Left mouse button (button === 0)
+        if (e.button === 0) {
             const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
             const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
             const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
+            console.log('Mousedown - current scale:', currentScale);
+
             // Only allow panning when zoomed in
             if (currentScale > 1) {
+                e.preventDefault();
+                e.stopPropagation();
                 isPanning = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -1018,6 +1027,7 @@ function setupImagePanning() {
                 currentTranslateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
 
                 lightboxImage.style.cursor = 'grabbing';
+                console.log('Started panning at', startX, startY);
             }
         }
     });
@@ -1028,6 +1038,7 @@ function setupImagePanning() {
 
         wasPanning = true;
         e.preventDefault();
+        e.stopPropagation();
 
         const deltaX = e.clientX - startX;
         const deltaY = e.clientY - startY;
@@ -1048,7 +1059,12 @@ function setupImagePanning() {
             isPanning = false;
             const lightboxImage = document.getElementById('lightboxImage');
             if (lightboxImage) {
-                lightboxImage.style.cursor = '';
+                const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
+                const scaleMatch = currentTransform.match(/scale\([\d.]+\)/);
+                const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+                
+                // Return to grab cursor if still zoomed
+                lightboxImage.style.cursor = currentScale > 1 ? 'grab' : '';
             }
         }
     };

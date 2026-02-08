@@ -610,26 +610,22 @@ function setupLightboxTouchNavigation() {
         const horizThreshold = 50; // px
         const vertThreshold = 50; // px
 
-        // Support both horizontal AND vertical swipes for all media
-        // Vertical: swipe UP = previous, swipe DOWN = next
-        // Horizontal: swipe LEFT = next, swipe RIGHT = previous
-
-        if (absY > absX) {
-            // Vertical swipe dominates
+        if (isVideo) {
+            // vertical navigation for videos
             if (deltaY > vertThreshold) {
-                // swipe UP -> previous
-                prevImage();
-            } else if (deltaY < -vertThreshold) {
-                // swipe DOWN -> next
+                // swipe up -> next video
                 nextImage();
+            } else if (deltaY < -vertThreshold) {
+                // swipe down -> previous video
+                prevImage();
             }
         } else {
-            // Horizontal swipe dominates
-            if (deltaX > horizThreshold) {
-                // swipe LEFT -> next
+            // horizontal navigation for images
+            if (deltaX > horizThreshold && absX > absY) {
+                // swipe left -> next image
                 nextImage();
-            } else if (deltaX < -horizThreshold) {
-                // swipe RIGHT -> previous
+            } else if (deltaX < -horizThreshold && absX > absY) {
+                // swipe right -> previous image
                 prevImage();
             }
         }
@@ -995,20 +991,22 @@ function setupImagePanning() {
     // Track if we were panning to prevent click events
     let wasPanning = false;
 
-    // Start panning on MIDDLE mouse button down when zoomed
+    // Start panning on left mouse button down when zoomed
     lightboxImage.addEventListener('mousedown', (e) => {
         wasPanning = false;
-
-        // Middle mouse button (button === 1)
-        if (e.button === 1) {
-            e.preventDefault();
-
+        
+        // Left mouse button (button === 0)
+        if (e.button === 0) {
             const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
             const scaleMatch = currentTransform.match(/scale\(([\d.]+)\)/);
             const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
+            console.log('Mousedown - current scale:', currentScale);
+
             // Only allow panning when zoomed in
             if (currentScale > 1) {
+                e.preventDefault();
+                e.stopPropagation();
                 isPanning = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -1018,6 +1016,7 @@ function setupImagePanning() {
                 currentTranslateY = translateMatch ? parseFloat(translateMatch[2]) : 0;
 
                 lightboxImage.style.cursor = 'grabbing';
+                console.log('Started panning at', startX, startY);
             }
         }
     });
@@ -1028,6 +1027,7 @@ function setupImagePanning() {
 
         wasPanning = true;
         e.preventDefault();
+        e.stopPropagation();
 
         const deltaX = e.clientX - startX;
         const deltaY = e.clientY - startY;
@@ -1048,7 +1048,12 @@ function setupImagePanning() {
             isPanning = false;
             const lightboxImage = document.getElementById('lightboxImage');
             if (lightboxImage) {
-                lightboxImage.style.cursor = '';
+                const currentTransform = lightboxImage.style.transform || 'scale(1) translate(0px, 0px)';
+                const scaleMatch = currentTransform.match(/scale\([\d.]+\)/);
+                const currentScale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+                
+                // Return to grab cursor if still zoomed
+                lightboxImage.style.cursor = currentScale > 1 ? 'grab' : '';
             }
         }
     };
